@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class MazeGenerator : MonoBehaviour
 {
@@ -20,9 +21,7 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] private int _seed = -1;
 
     [Header("Layer Assignment")]
-    [SerializeField] private string _wallLayerName = "Wall";
-
-    
+    [SerializeField] private string _wallLayerName = "Wall";    
     
     // 벽 오브젝트와 그 벽들이 갖고 있는 컴포넌트(Renderer, Collider)의 참조를 묶은 Struct
     private struct WallEntry
@@ -46,6 +45,11 @@ public class MazeGenerator : MonoBehaviour
     public int Cols  => _cols;
     public int Rows  => _rows;
     public float CellSize => _cellSize;
+
+    private void Awake()
+    {
+        worldStart = new Vector2(-20 * _cellSize * 0.5f, -20 * _cellSize * 0.5f);
+    }
 
     /// <summary>
     /// 미로 사이즈 설정 메소드

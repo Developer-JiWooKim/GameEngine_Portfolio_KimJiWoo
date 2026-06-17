@@ -48,11 +48,23 @@ public class MazeLayerManager : MonoBehaviour
         }
     }
 
+    // #TODO: 삭제 예정 or UI버튼에 미로 바꾸기? 버튼으로 미로 구조 바꿀 수 있는 기능 추가 예정
+    public void RandomSeed()
+    {
+        _physicalSeed = UnityEngine.Random.Range(0, 1100);
+        _arcaneSeed = UnityEngine.Random.Range(1100, 2200);
+
+        Debug.Log($"_physicalSeed: {_physicalSeed} / _arcaneSeed:{_arcaneSeed}");
+    }
+
     /// <summary>
     /// 미로 생성 후 레이어 설정
     /// </summary>
     public void SetLayersAndMazeGenerate(int cols, int rows)
     {
+        // #TODO: 미로 바뀌는지 테스트용 코드
+        RandomSeed();
+
         _physicalMaze.SetSeed(_physicalSeed);
         _physicalMaze.SetSize(cols, rows);
         _physicalMaze.Generate();
