@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 741552839408422038}
   - component: {fileID: 708955925073642056}
   m_Layer: 7
-  m_Name: Wall
+  m_Name: Wall_Arcane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2b34e11d1e1186e4895e2100bb53b952, type: 2}
+  - {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

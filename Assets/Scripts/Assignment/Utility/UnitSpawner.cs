@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class UnitSpawner : MonoBehaviour
 {
-    [SerializeField] private MazeGenerator _mazeGenerator;
+    [SerializeField] private MazeLayerManager _mazeLayerManager;
 
     [SerializeField] private GameObject _monsterPrefab;
     [SerializeField] private GameObject _playerPrefab;
@@ -15,6 +15,8 @@ public class UnitSpawner : MonoBehaviour
     private Vector2Int _goalCell;        // 목표 지점 셀
 
     private GameObject _player;
+
+    private MazeGenerator _activeMaze;
 
     public PlayerController Player => _player?.GetComponent<PlayerController>();
 
@@ -43,32 +45,43 @@ public class UnitSpawner : MonoBehaviour
 
     private void Initialize()
     {
+        _activeMaze = _mazeLayerManager.GetActiveMaze();
+
         _playerStartCell = new Vector2Int(0, 0);
-        _goalCell = new Vector2Int(_mazeGenerator.Cols - 1, _mazeGenerator.Rows - 1);
+        _goalCell = new Vector2Int(_activeMaze.Cols - 1, _activeMaze.Rows - 1);
     }
 
     private void SpawnPlayer()
     {
         if (_playerPrefab == null) return;
 
-        Vector3 spawnPos = _mazeGenerator.GetCell(_playerStartCell.x, _playerStartCell.y).worldCenter;
+        Vector3 spawnPos = _activeMaze.GetCell(_playerStartCell.x, _playerStartCell.y).worldCenter;
 
         spawnPos.y = _spawnY;
 
         _player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
 
         FollowCamera followCamera = Camera.main.GetComponent<FollowCamera>();
-        followCamera.Target = _player.transform;
+        if(followCamera != null)
+        {
+            followCamera.Target = _player.transform;
+        }        
+
+        PlayerInput playerInput = _player.GetComponent<PlayerInput>();
+        if(playerInput != null)
+        {
+            _mazeLayerManager.RegisterPlayerInput(playerInput);
+        }
     }
 
     private void SpawnMonsters()
     {
         if (_monsterPrefab == null) return;
-                
+
         List<Cell> candidates = new List<Cell>();
 
         // 몬스터를 스폰 가능한 셀들 리스트에 추가
-        foreach (Cell cell in _mazeGenerator.AllCells)
+        foreach (Cell cell in _activeMaze.AllCells)
         {
             // 플레이어 시작점, 목표 지점에는 몬스터 생성 X
             if (cell.col == _playerStartCell.x && cell.row == _playerStartCell.y) continue;

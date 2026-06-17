@@ -672,6 +672,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FollowCamera
   _smoothTime: 0.3
+  _height: 20
+  _distanceBack: 18
+  _pitchAngle: 45
 --- !u!1 &133144350
 GameObject:
   m_ObjectHideFlags: 0
@@ -2162,6 +2165,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 408157492}
   m_CullTransparentMesh: 1
+--- !u!1 &466176216
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 466176217}
+  - component: {fileID: 466176218}
+  m_Layer: 0
+  m_Name: PhysicalMazeGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &466176217
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 466176216}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1514082478}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &466176218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 466176216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c92a78ddd1bb274a886eca310211ac4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MazeGenerator
+  _cols: 20
+  _rows: 20
+  _cellSize: 5
+  _wallPrefab: {fileID: 2775634970881188326, guid: 56df1178e58107a4fa87f04be4329fb9, type: 3}
+  _wallThickness: 0.3
+  _wallHeight: 3
+  _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
+  _seed: -1
+  _wallLayerName: Wall_Physical
 --- !u!1 &484258037
 GameObject:
   m_ObjectHideFlags: 0
@@ -2806,8 +2862,12 @@ MonoBehaviour:
   _resultTimeText: {fileID: 2040303650}
   _replayButton: {fileID: 1007369023}
   _gameEndButton: {fileID: 676585003}
-  _mazeGenerator: {fileID: 1211507982}
+  _mazeLayerManager: {fileID: 2132763794}
   _unitSpawner: {fileID: 1282344940}
+  _useFixedSize: 1
+  _fixedCols: 20
+  _fixedRows: 20
+  _fixedMonsterCnt: 12
 --- !u!1 &837992633
 GameObject:
   m_ObjectHideFlags: 0
@@ -2986,6 +3046,38 @@ MonoBehaviour:
   isAlert: 0
   m_InputValidator: {fileID: 0}
   m_ShouldActivateOnSelect: 1
+--- !u!1 &881565413
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 881565414}
+  m_Layer: 0
+  m_Name: ArcaneLayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &881565414
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881565413}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1013836943}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &909066507
 GameObject:
   m_ObjectHideFlags: 0
@@ -3294,6 +3386,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1007369021}
   m_CullTransparentMesh: 1
+--- !u!1 &1013836942
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1013836943}
+  - component: {fileID: 1013836944}
+  m_Layer: 0
+  m_Name: ArcaneMazeGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1013836943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013836942}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 881565414}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1013836944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013836942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c92a78ddd1bb274a886eca310211ac4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MazeGenerator
+  _cols: 20
+  _rows: 20
+  _cellSize: 5
+  _wallPrefab: {fileID: 2775634970881188326, guid: 0616d25d5174add498fe09aaf1c695a5, type: 3}
+  _wallThickness: 0.3
+  _wallHeight: 3
+  _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
+  _seed: -1
+  _wallLayerName: Wall_Arcane
 --- !u!1 &1211507981
 GameObject:
   m_ObjectHideFlags: 0
@@ -3323,14 +3468,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c92a78ddd1bb274a886eca310211ac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MazeGenerator
-  _cols: 10
-  _rows: 10
+  _cols: 20
+  _rows: 20
   _cellSize: 5
   _wallPrefab: {fileID: 2775634970881188326, guid: 0616d25d5174add498fe09aaf1c695a5, type: 3}
   _wallThickness: 0.3
   _wallHeight: 3
   _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
   _seed: -1
+  _wallLayerName: Wall
 --- !u!4 &1211507983
 Transform:
   m_ObjectHideFlags: 0
@@ -3375,7 +3521,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c0e2c3fc04848548ad8bc3d680b27ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSpawner
-  _mazeGenerator: {fileID: 1211507982}
+  _mazeLayerManager: {fileID: 2132763794}
   _monsterPrefab: {fileID: 7092602877218490808, guid: 32621549e4849754a8a8644584fa71e0, type: 3}
   _playerPrefab: {fileID: 4083551658152284763, guid: e4da775245c4c4d4abe0fa2c14913624, type: 3}
   _monsterCount: 5
@@ -3827,6 +3973,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1487808878}
   m_CullTransparentMesh: 1
+--- !u!1 &1514082477
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1514082478}
+  m_Layer: 0
+  m_Name: PhysicalLayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1514082478
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514082477}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 466176217}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1696990264
 GameObject:
   m_ObjectHideFlags: 0
@@ -4995,6 +5173,57 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: -8, y: -5, z: -8, w: -5}
   m_Softness: {x: 0, y: 0}
+--- !u!1 &2132763793
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2132763795}
+  - component: {fileID: 2132763794}
+  m_Layer: 0
+  m_Name: MazeLayerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2132763794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132763793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d44805e11f808254d908ab5bcbf4fe40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MazeLayerManager
+  _physicalLayerRoot: {fileID: 1514082477}
+  _arcaneLayerRoot: {fileID: 881565413}
+  _physicalMaze: {fileID: 466176218}
+  _arcaneMaze: {fileID: 1013836944}
+  _physicalSeed: 1001
+  _arcaneSeed: 2002
+  _overlapCheckRadius: 0.6
+--- !u!4 &2132763795
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2132763793}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -5007,3 +5236,6 @@ SceneRoots:
   - {fileID: 1748994321}
   - {fileID: 782461474}
   - {fileID: 495425287}
+  - {fileID: 1514082478}
+  - {fileID: 881565414}
+  - {fileID: 2132763795}

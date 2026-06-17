@@ -4,8 +4,8 @@ using UnityEngine;
 public class MazeGenerator : MonoBehaviour
 {
     [Header("Gird")]
-    [SerializeField] private int    _cols = 10; // 가로
-    [SerializeField] private int    _rows = 10; // 세로
+    [SerializeField] private int    _cols = 20; // 가로
+    [SerializeField] private int    _rows = 20; // 세로
     [SerializeField] private float  _cellSize = 5f;    
 
     [Header("Walls")]
@@ -17,13 +17,27 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] private GameObject _goalPointPrefab;
 
     [Header("Random Seed")]
-    [SerializeField] private int _seed = -1;    
+    [SerializeField] private int _seed = -1;
 
-    private Cell[,]          _grid;    
-    private List<GameObject> _wallObjects = new List<GameObject>();
-    private List<Cell>       _allCells    = new List<Cell>();
+    [Header("Layer Assignment")]
+    [SerializeField] private string _wallLayerName = "Wall";
+
+    
+    
+    // 벽 오브젝트와 그 벽들이 갖고 있는 컴포넌트(Renderer, Collider)의 참조를 묶은 Struct
+    private struct WallEntry
+    {
+        public GameObject gameObject;
+        public Renderer   renderer;
+        public Collider   collider;
+    }
 
     private Vector2 worldStart;
+
+    private Cell[,] _grid;
+    private List<Cell> _allCells = new List<Cell>();
+
+    private readonly List<WallEntry> _wallEntries = new List<WallEntry>();   
 
     private readonly List<Cell>  _neighborCache = new List<Cell>(4);
     private readonly Stack<Cell> _dfsStack      = new Stack<Cell>();
@@ -42,6 +56,14 @@ public class MazeGenerator : MonoBehaviour
         _rows = rows;
 
         worldStart = new Vector2(-cols * _cellSize * 0.5f, -rows * _cellSize * 0.5f);
+    }
+
+    /// <summary>
+    /// 시드값을 직접 지정해 미로를 생성하는 메소드
+    /// </summary>
+    public void SetSeed(int seed)
+    {
+        _seed = seed;
     }
 
     /// <summary>
@@ -68,7 +90,7 @@ public class MazeGenerator : MonoBehaviour
         Vector3 spawnPos = goalCell.worldCenter;
         spawnPos.y = 1f;
 
-        Instantiate(_goalPointPrefab, spawnPos, Quaternion.identity);
+        Instantiate(_goalPointPrefab, spawnPos, Quaternion.identity, transform);
     }
 
     /// <summary>
@@ -76,15 +98,15 @@ public class MazeGenerator : MonoBehaviour
     /// </summary>
     public void ClearWalls()
     {
-        foreach (var wall in _wallObjects)
+        foreach (var entry in _wallEntries)
         {
-            if (wall != null)
+            if (entry.gameObject != null)
             {
-                DestroyImmediate(wall);
+                DestroyImmediate(entry.gameObject);
             }
         }
 
-        _wallObjects.Clear();
+        _wallEntries.Clear();
     }
 
     /// <summary>
@@ -196,6 +218,8 @@ public class MazeGenerator : MonoBehaviour
         GameObject wallParent = new GameObject("Walls");
         wallParent.transform.SetParent(transform);
 
+        int wallLayer = LayerMask.NameToLayer(_wallLayerName);
+
         for (int r = 0; r < _rows; r++)
         {
             for (int c = 0; c < _cols; c++)
@@ -209,25 +233,23 @@ public class MazeGenerator : MonoBehaviour
                 if (cell.northWall)
                 {
                     Vector3 pos = new Vector3(cx, _wallHeight * 0.5f, cz + _cellSize * 0.5f);
-                    SpawnWall(pos, false, wallParent.transform);
+                    SpawnWall(pos, false, wallParent.transform, wallLayer);
                 }
 
                 if (cell.eastWall)
                 {
                     Vector3 pos = new Vector3(cx + _cellSize * 0.5f, _wallHeight * 0.5f, cz);
-                    SpawnWall(pos, true, wallParent.transform);
+                    SpawnWall(pos, true, wallParent.transform, wallLayer);
                 }
-                // southWall은 r == 0(맨 아래 행)일 때만 처리, 인접한 두 셀이 같은 벽을 중복 생성하지 않도록 하기 위해
                 if (r == 0 && cell.southWall)
                 {
                     Vector3 pos = new Vector3(cx, _wallHeight * 0.5f, cz - _cellSize * 0.5f);
-                    SpawnWall(pos, false, wallParent.transform);
+                    SpawnWall(pos, false, wallParent.transform, wallLayer);
                 }
-                // westWall은 c == 0 (맨 왼쪽 열)일 때만 처리, 인접한 두 셀이 같은 벽을 중복 생성하지 않도록 하기 위해
                 if (c == 0 && cell.westWall)
                 {
                     Vector3 pos = new Vector3(cx - _cellSize * 0.5f, _wallHeight * 0.5f, cz);
-                    SpawnWall(pos, true, wallParent.transform);
+                    SpawnWall(pos, true, wallParent.transform, wallLayer);
                 }
             }
         }
@@ -236,15 +258,25 @@ public class MazeGenerator : MonoBehaviour
     /// <summary>
     /// 벽 하나 생성, isVertical -> true = Z축 방향 벽, false = X축 방향 벽
     /// </summary>
-    private void SpawnWall(Vector3 position, bool isVertical, Transform parent)
+    private void SpawnWall(Vector3 position, bool isVertical, Transform parent, int wallLayer)
     {
         GameObject wall = Instantiate(_wallPrefab, position, Quaternion.identity, parent);
 
-        // 가로 벽: _cellSize 길이, X 방향으로 
-        // 세로 벽: _cellSize 길이, Z 방향으로 
         wall.transform.localScale = isVertical ? new Vector3(_wallThickness, _wallHeight, _cellSize) : new Vector3(_cellSize, _wallHeight, _wallThickness);
 
-        _wallObjects.Add(wall);
+        if (wallLayer != -1)
+        {
+            wall.layer = wallLayer;
+        }
+
+        WallEntry entry = new WallEntry
+        {
+            gameObject = wall,
+            renderer = wall.GetComponent<Renderer>(),
+            collider = wall.GetComponent<Collider>()
+        };
+
+        _wallEntries.Add(entry);
     }
 
     /// <summary>
@@ -277,6 +309,28 @@ public class MazeGenerator : MonoBehaviour
         if (col < 0 || col >= _cols || row < 0 || row >= _rows) return null;
 
         return _grid[col, row];
+    }
+
+    /// <summary>
+    /// 미로의 모든 벽을 활성/비활성 레이어 상태로 전환
+    /// 활성 시: 보이고 충돌함 / 비활성 시: 안 보이고 통과 가능 (콜라이더는 위치 검사를 위해 트리거로 유지)
+    /// </summary>
+    public void SetWallsActiveState(bool isActiveLayer)
+    {
+        for (int i = 0; i < _wallEntries.Count; i++)
+        {
+            WallEntry entry = _wallEntries[i];
+
+            if(entry.renderer != null)
+            {
+                entry.renderer.enabled = isActiveLayer;
+            }
+
+            if(entry.collider != null)
+            {
+                entry.collider.isTrigger = !isActiveLayer;
+            }
+        }
     }
 
     /// <summary>

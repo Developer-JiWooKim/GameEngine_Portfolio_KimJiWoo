@@ -13,8 +13,8 @@ TagManager:
   - UI
   - Player
   - Wall
-  - 
-  - 
+  - Wall_Physical
+  - Wall_Arcane
   - 
   - 
   - 

@@ -27,8 +27,16 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Button          _gameEndButton;
 
     [Header("참조")]
-    [SerializeField] private MazeGenerator _mazeGenerator;
-    [SerializeField] private UnitSpawner   _unitSpawner;
+    // [SerializeField] private MazeGenerator _mazeGenerator;
+    [SerializeField] private MazeLayerManager _mazeLayerManager;
+    [SerializeField] private UnitSpawner      _unitSpawner;
+
+    [Header("Fixed Size")]
+    [Tooltip("고정 미로 크기/몬스터 수. true면 Setup Panel을 건너뛰고 바로 시작")]
+    [SerializeField] private bool _useFixedSize = true;
+    [SerializeField] private int _fixedCols = 20;
+    [SerializeField] private int _fixedRows = 20;
+    [SerializeField] private int _fixedMonsterCnt = 12;
 
     private PlayerController _player;
 
@@ -45,7 +53,28 @@ public class GameUI : MonoBehaviour
 
         _errorTextString = $"Please enter only positive integers\nMaze Size: Min:5 / Max:50\nMonster Count: Min:0 / Max:";
 
-        SetSetupPanel();
+        if(_useFixedSize)
+        {
+            StartSetFixedSize();
+        }
+        else
+        {
+            SetSetupPanel();
+        }
+    }
+
+    private void StartSetFixedSize()
+    {
+        _setupPanel.SetActive(false);
+
+        _mazeLayerManager.SetLayersAndMazeGenerate(_fixedCols, _fixedRows);
+
+        _unitSpawner.SetMonsterCount(_fixedMonsterCnt);
+        _unitSpawner.SpawnAll();
+
+        _player = _unitSpawner.Player;
+
+        SetInGamePanel();
     }
 
     private void SubscribeButtonEvent()
@@ -120,10 +149,6 @@ public class GameUI : MonoBehaviour
             return;
         }        
 
-        // 미로 생성 + 유닛 스폰
-        _mazeGenerator.SetSize(cols, rows);
-        _mazeGenerator.Generate();
-
         _unitSpawner.SetMonsterCount(monsterCount);
         _unitSpawner.SpawnAll();
 
@@ -175,7 +200,7 @@ public class GameUI : MonoBehaviour
         _inGamePanel.SetActive(false);
 
         _resultText.text = message;
-        _mazeSizeText.text   = $"Maze Size: {_mazeGenerator.Cols} X {_mazeGenerator.Rows}";
+        _mazeSizeText.text   = $"Maze Size: 20 X 20";
         _resultTimeText.text = $"End Time : {GameManager.Instance.GameTimer.GetFormattedTime()}";
         _resultPanel.SetActive(true);
         
