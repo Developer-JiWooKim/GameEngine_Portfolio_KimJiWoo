@@ -1,4 +1,4 @@
-using System;
+using FischlWorks_FogWar;
 using UnityEngine;
 
 public class MazeLayerManager : MonoBehaviour
@@ -23,6 +23,11 @@ public class MazeLayerManager : MonoBehaviour
 
     [Header("Layer Switch Check")]
     [SerializeField] private float _overlapCheckRadius = 0.6f; // 전환 시 플레이어 위치에서 벽과의 겹침을 검사할 반경
+
+
+    [SerializeField] private csFogWar _fogWarSystem;
+
+    public csFogWar FogWarSystem => _fogWarSystem;
 
     private int _physicalWallMask;
     private int _arcaneWallMask;
@@ -77,6 +82,12 @@ public class MazeLayerManager : MonoBehaviour
 
         _physicalMaze.SetWallsActiveState(true);
         _arcaneMaze.SetWallsActiveState(false);
+
+        if(_fogWarSystem != null)
+        {            
+            _fogWarSystem.ScanLevel();
+
+        }
     }
 
     /// <summary>
@@ -124,6 +135,12 @@ public class MazeLayerManager : MonoBehaviour
 
         _physicalMaze.SetWallsActiveState(physicalActive);
         _arcaneMaze.SetWallsActiveState(!physicalActive);
+
+        // #TODO: 제미니 코드
+        if(_fogWarSystem != null)
+        {
+            _fogWarSystem.ScanLevel();
+        }
 
         OnLayerChanged?.Invoke(layer);
     }
