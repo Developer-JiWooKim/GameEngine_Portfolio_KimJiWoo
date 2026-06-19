@@ -2,6 +2,13 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    private CharacterController _characterController;
+
+    private void Awake()
+    {
+        _characterController = GetComponent<CharacterController>();
+    }
+
     /// <summary>
     /// 방향과 속력을 받아 플레이어를 이동 및 이동 방향으로 회전 시켜주는 메소드
     /// </summary>
@@ -16,7 +23,8 @@ public class PlayerMove : MonoBehaviour
 
         RotateToward(moveDir);
 
-        transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);       
+        // CharacterController 기반 캐릭터 이동
+        _characterController.Move(moveDir * moveSpeed * Time.deltaTime);    
     }
 
     private void RotateToward(Vector3 dir)

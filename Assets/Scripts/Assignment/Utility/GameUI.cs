@@ -27,7 +27,6 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Button          _gameEndButton;
 
     [Header("참조")]
-    // [SerializeField] private MazeGenerator _mazeGenerator;
     [SerializeField] private MazeLayerManager _mazeLayerManager;
     [SerializeField] private UnitSpawner      _unitSpawner;
 
@@ -36,7 +35,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private bool _useFixedSize = true;
     [SerializeField] private int _fixedCols = 20;
     [SerializeField] private int _fixedRows = 20;
-    [SerializeField] private int _fixedMonsterCnt = 12;
+    [SerializeField] private int _fixedMonsterCnt = 10;
 
     private PlayerController _player;
 
