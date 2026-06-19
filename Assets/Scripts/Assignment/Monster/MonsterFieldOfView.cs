@@ -17,7 +17,6 @@ public class MonsterFieldOfView : MonoBehaviour
 
     private Mesh       _mesh;
     private MeshFilter _meshFilter;
-    private int        _wallLayerMask;
 
     private Vector3[] _vertices;
     private int[]     _triangles;
@@ -29,7 +28,6 @@ public class MonsterFieldOfView : MonoBehaviour
     private void Initialize()
     {
         _meshFilter = GetComponent<MeshFilter>();
-        _wallLayerMask = LayerMask.GetMask("Wall");
 
         _mesh = new Mesh { name = "FieldOfViewMesh" };
         _meshFilter.mesh = _mesh;
@@ -76,7 +74,7 @@ public class MonsterFieldOfView : MonoBehaviour
 
             Vector3 endPoint;
 
-            if (Physics.Raycast(origin, direction, out RaycastHit hit, _detectionRange, _wallLayerMask))
+            if (Physics.Raycast(origin, direction, out RaycastHit hit, _detectionRange, MazeLayerManager.Instance.CurrentWallLayerMask))
             {
                 endPoint = hit.point;
             }

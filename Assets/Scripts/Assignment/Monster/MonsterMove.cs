@@ -1,99 +1,57 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class MonsterMove : MonoBehaviour
 {
-    [SerializeField] private float _moveSpeed    = 7f;   
-    [SerializeField] private float _rotateSpeed  = 15f;  
-    [SerializeField] private float _nodeDistance = 0.5f;
+    [SerializeField] private float _moveSpeed      = 7f;   
+    [SerializeField] private float _rotateSpeed    = 15f;
+    [SerializeField] private float _arriveDistance = 0.5f; // 목표 지점 도착 판정 거리
 
-    private List<Vector3> _path             = new List<Vector3>();
-    private int           _pathIndex;
-    private Vector2Int    _lastGoalCell     = Vector2Int.zero;
-    private float         _sphereCastRaduis = 0.5f; 
-    private int           _wallLayerMask;
+    private NavMeshAgent _agent;
+    private Vector3      _patrolTarget;
+    private bool         _hasPatrolTarget;
+    private Vector2Int   _previousCell;
+    private bool         _hasPreviousCell;
+
+    private List<Vector2Int> _openNeighbors = new List<Vector2Int>(4);
 
     private void Awake()
     {
-        _wallLayerMask = LayerMask.GetMask("Wall");
+        _agent                = GetComponent<NavMeshAgent>();
+        _agent.speed          = _moveSpeed;
+        _agent.updateRotation = false;
     }
 
     /// <summary>
-    /// Idle 상태일 때 제자리 회전
+    /// Idle 상태일 때 미로 안의 랜덤 지점을 목표로 순찰하는 메소드
     /// </summary>
-    public void IdleRotate()
+    public void Patrol()
     {
-        transform.Rotate(0f, _rotateSpeed * Time.deltaTime, 0f, Space.World);
-    }
+        _agent.isStopped = false;
 
-    /// <summary>
-    /// 타겟 위치까지의 최단 거리를 구하는 AStarPathfinder로 Path를 생성
-    /// </summary>
-    public void RequestPath(Vector3 targetPos)
-    {
-        if (AStarPathfinder.Instance == null) return;
-
-        Vector2Int goalCell = AStarPathfinder.Instance.WorldToCell(targetPos);
-
-        if (goalCell == _lastGoalCell && _path.Count > 0) return;
-
-        _lastGoalCell = goalCell;
-
-        List<Vector3> newPath = AStarPathfinder.Instance.FindPath(transform.position, targetPos);
-
-        if (newPath != null && newPath.Count > 0)
+        if (!_hasPatrolTarget || _agent.remainingDistance <= _arriveDistance)
         {
-            _path = newPath;
-            _pathIndex = 0;
+            if(TryGetRandomPatrolPoint(out Vector3 point))
+            {
+                _patrolTarget = point;
+                _agent.SetDestination(_patrolTarget);
+                _hasPatrolTarget = true;
+            }
         }
+
+        RotateTowardVelocity();
     }
 
     /// <summary>
-    /// A* 알고리즘으로 생성한 길 초기화
-    /// </summary>
-    public void ClearPath()
-    {
-        _path.Clear();
-        _pathIndex = 0;
-    }
-
-    /// <summary>
-    /// 타겟 방향으로 이동
+    /// 타겟 위치로 추격 이동, 경로 탐색과 이동은 NavMeshAgent가 자체적으로 처리
     /// </summary>
     public void MoveToTarget(Vector3 targetPos)
     {
-        if (IsPathClear(targetPos))
-        {
-            // 타겟과 자신 사이에 장애물이 없으면 바로 타겟 방향으로 이동
-            ClearPath();
-            MoveStraight(targetPos);
-        }
-        else
-        {
-            RequestPath(targetPos);
+        _agent.isStopped = false;
+        _agent.SetDestination(targetPos);
 
-            // 길이 없거나 끝에 도달했으면 타겟 방향으로 직진
-            if (_path.Count == 0 || _pathIndex >= _path.Count)
-            {
-                MoveStraight(targetPos);
-                return;
-            }
-
-            Vector3 myPos = transform.position;
-
-            Vector3 nodePos = _path[_pathIndex];
-            nodePos.y = myPos.y;
-
-            // 목표 노드에 도착 시 다음 노드로 목표 노드를 바꿈
-            if ((nodePos - myPos).sqrMagnitude < _nodeDistance * _nodeDistance)
-            {
-                _pathIndex++;
-                return;
-            }
-
-            // 정해진 목표 노드의 센터로 이동
-            MoveStraight(nodePos);
-        }
+        RotateTowardVelocity();
     }
 
     /// <summary>
@@ -101,8 +59,10 @@ public class MonsterMove : MonoBehaviour
     /// </summary>
     public void LookAtTarget(Vector3 targetPos)
     {
+        _agent.isStopped = true;
+
         Vector3 dir = targetPos - transform.position;
-        dir.y = 0;
+        dir.y = 0f;
 
         if (dir.sqrMagnitude < 0.001f) return;
 
@@ -110,41 +70,82 @@ public class MonsterMove : MonoBehaviour
     }
 
     /// <summary>
-    /// 타겟과 자신 사이에 장애물이 있는지 검사, SphereCast로 현재 타겟과 자신 사이에 벽이 있는지 체크
+    /// Idle 진입 시 순찰 목표 초기화
     /// </summary>
-    private bool IsPathClear(Vector3 targetPos)
+    public void ClearPath()
     {
-        Vector3 myPos = transform.position;
-
-        Vector3 origin = myPos + Vector3.up * 0.5f;
-
-        Vector3 direction = targetPos - myPos;
-        direction.y = 0;
-
-        float distance = direction.magnitude;
-
-        Vector3 dirNormalized = direction / distance;
-
-        return !Physics.SphereCast(origin, _sphereCastRaduis, dirNormalized, out _, distance, _wallLayerMask);
+        _hasPatrolTarget = false;
+        _agent.isStopped = false;
     }
 
     /// <summary>
-    /// 타겟의 방향으로 이동
+    /// 현재 셀 기준으로 벽이 없는 인접 셀 중 하나를 골라 순찰 목표로 반환하는 메소드 (방금 왔던 셀은 막다른 길이 아닌 이상 후보에서 제외 - 핑퐁 이동 방지)
     /// </summary>
-    private void MoveStraight(Vector3 targetPos)
+    private bool TryGetRandomPatrolPoint(out Vector3 result)
     {
-        Vector3 dir = targetPos - transform.position;
-        dir.y = 0f;
+        MazeGenerator mazeGenenrator = MazeLayerManager.Instance != null ? MazeLayerManager.Instance.GetActiveMaze() : null;
 
-        float distance = dir.magnitude;
+        Vector3 myPos = transform.position;
 
-        if (distance < 0.001f) return;
+        if (mazeGenenrator == null)
+        {
+            result = myPos;
+            return false;
+        }
+        
+        Vector2Int currentCellPos = mazeGenenrator.WorldToCell(myPos);
 
-        dir /= distance; // 정규화
+        Cell currentCell = mazeGenenrator.GetCell(currentCellPos.x, currentCellPos.y);
 
-        RotateToward(dir);       
+        if (currentCell == null)
+        {
+            result = myPos;
+            return false;
+        }
 
-        transform.Translate(dir * _moveSpeed * Time.deltaTime, Space.World);
+        _openNeighbors.Clear();
+
+        if (!currentCell.northWall) _openNeighbors.Add(new Vector2Int(currentCellPos.x, currentCellPos.y + 1));
+        if (!currentCell.southWall) _openNeighbors.Add(new Vector2Int(currentCellPos.x, currentCellPos.y - 1));
+        if (!currentCell.eastWall)  _openNeighbors.Add(new Vector2Int(currentCellPos.x + 1, currentCellPos.y));
+        if (!currentCell.westWall)  _openNeighbors.Add(new Vector2Int(currentCellPos.x - 1, currentCellPos.y));
+
+        if(_hasPreviousCell && _openNeighbors.Count > 1)
+        {
+            _openNeighbors.Remove(_previousCell);
+        }
+
+        if(_openNeighbors.Count == 0)
+        {
+            result = myPos;
+            return false;
+        }
+
+        Vector2Int choiceCell = _openNeighbors[Random.Range(0, _openNeighbors.Count)];
+
+        Cell neighborCell = mazeGenenrator.GetCell(choiceCell.x, choiceCell.y);
+
+        _previousCell = currentCellPos;
+        _hasPreviousCell = true;
+
+        result = neighborCell.worldCenter;
+
+        result.y = myPos.y;
+
+        return true;
+    }
+
+    /// <summary>
+    /// NavMeshAgent의 현재 이동 방향(velocity)을 바라보도록 부드럽게 회전
+    /// </summary>
+    private void RotateTowardVelocity()
+    {
+        if (_agent.velocity.sqrMagnitude < 0.01f) return;
+
+        Vector3 dir = _agent.velocity;
+        dir.y = 0;
+
+        RotateToward(dir);
     }
 
     /// <summary>

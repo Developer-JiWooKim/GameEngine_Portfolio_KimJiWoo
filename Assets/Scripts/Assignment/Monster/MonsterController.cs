@@ -99,7 +99,7 @@ public class MonsterController : MonoBehaviour
         switch (_monsterFSM.Current)
         {
             case MonsterFSM.State.Idle:
-                _monsterMove.IdleRotate();
+                _monsterMove.Patrol();
                 break;
             case MonsterFSM.State.Chase:
                 _monsterMove.MoveToTarget(_target.position);

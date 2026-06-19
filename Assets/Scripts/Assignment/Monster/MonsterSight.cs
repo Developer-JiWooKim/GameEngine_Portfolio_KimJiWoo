@@ -6,16 +6,9 @@ public class MonsterSight : MonoBehaviour
     [SerializeField] private float _fieldOfView    = 90f;   // 전체 시야각
     [SerializeField] private bool  _isSense        = false; // 감지 여부
 
-    private int _wallLayerMask;
-
     public float DetectionRange => _detectionRange;
 
     public float FieldOfView => _fieldOfView;
-
-    private void Awake()
-    {
-        _wallLayerMask = LayerMask.GetMask("Wall");
-    }
 
     /// <summary>
     /// 타겟이 시야각 안에 들어와 있고 타겟과 자신 사이에 벽이 있는지 검사하는 메소드 
@@ -48,8 +41,8 @@ public class MonsterSight : MonoBehaviour
         // 내 위치 기준 바닥에서 0.5f 위 지점
         Vector3 origin = myPos + Vector3.up * 0.5f;
 
-        // 시야각 안에 있어도 Ray를 쐈을 때 벽이 타겟과 자신 사이에 있으면 감지 실패
-        if(Physics.Raycast(origin, dirToPlayer, distance, _wallLayerMask))
+        // 시야각 안에 있어도 Ray를 쐈을 때 현재 활성화된 레이어의 벽이 타겟과 자신 사이에 있으면 감지 실패
+        if (Physics.Raycast(origin, dirToPlayer, distance, MazeLayerManager.Instance.CurrentWallLayerMask))
         {
             return _isSense = false;
         }

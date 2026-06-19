@@ -414,6 +414,7 @@ GameObject:
   - component: {fileID: 5455248322757765073}
   - component: {fileID: 5455916527998377572}
   - component: {fileID: 262672887263307539}
+  - component: {fileID: 6298148313232670865}
   m_Layer: 0
   m_Name: Monster
   m_TagString: Untagged
@@ -495,6 +496,8 @@ MonoBehaviour:
   _moveSpeed: 7
   _rotateSpeed: 15
   _nodeDistance: 0.5
+  _patrolRadius: 30
+  _arriveDistance: 0.5
 --- !u!114 &5455916527998377572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -520,3 +523,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterFSM
   _current: 0
+--- !u!195 &6298148313232670865
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7092602877218490808}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 7
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 1
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
