@@ -5,7 +5,7 @@ using UnityEngine.AI;
 public class MonsterMove : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed      = 7f;   
-    [SerializeField] private float _rotateSpeed    = 15f;
+    [SerializeField] private float _rotateSpeed    = 240f;
     [SerializeField] private float _arriveDistance = 0.5f; // 목표 지점 도착 판정 거리
 
     private NavMeshAgent _agent;
@@ -20,7 +20,7 @@ public class MonsterMove : MonoBehaviour
     {
         _agent                = GetComponent<NavMeshAgent>();
         _agent.speed          = _moveSpeed;
-        _agent.updateRotation = false;
+        _agent.updateRotation = true; 
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public class MonsterMove : MonoBehaviour
             }
         }
 
-        RotateTowardVelocity();
+        // RotateTowardVelocity();
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class MonsterMove : MonoBehaviour
         _agent.isStopped = false;
         _agent.SetDestination(targetPos);
 
-        RotateTowardVelocity();
+       // RotateTowardVelocity();
     }
 
     /// <summary>
@@ -79,7 +79,8 @@ public class MonsterMove : MonoBehaviour
     }
 
     /// <summary>
-    /// 현재 셀 기준으로 벽이 없는 인접 셀 중 하나를 골라 순찰 목표로 반환하는 메소드 (방금 왔던 셀은 막다른 길이 아닌 이상 후보에서 제외 - 핑퐁 이동 방지)
+    /// 현재 셀 기준으로 벽이 없는 인접 셀 중 하나를 골라 순찰 목표로 반환하는 메소드
+    /// 방금 왔던 셀은 막다른 길이 아닌 이상 후보에서 제외 -> 핑퐁 이동 방지
     /// </summary>
     private bool TryGetRandomPatrolPoint(out Vector3 result)
     {
@@ -156,6 +157,8 @@ public class MonsterMove : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(dir, Vector3.up);
 
         // 부드러운 회전
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotateSpeed);
+        // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotateSpeed);
+
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotateSpeed * Time.deltaTime);
     }
 }

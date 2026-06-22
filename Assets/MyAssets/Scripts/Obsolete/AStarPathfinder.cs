@@ -1,6 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// [미사용 - 이전 Algorithm_Portfolio_KimJiWoo에서 직접 구현한 A* 길찾기 알고리즘]
+/// 현재 프로젝트에서는 몬스터 추적/순찰을 NavMeshAgent + NavMeshSurface로 대체
+/// </summary>
+[System.Obsolete("NavMeshAgent로 대체됨. 더 이상 사용하지 않음")]
 public class AStarPathfinder : MonoBehaviour
 {
     [SerializeField] private MazeGenerator _mazeGenerator;
@@ -12,7 +17,7 @@ public class AStarPathfinder : MonoBehaviour
     private readonly List<Vector2Int>                   _cachedPath     = new List<Vector2Int>();
     private readonly List<Vector2Int>                   _neighborResult = new List<Vector2Int>(4);
     private readonly List<Vector3>                      _worldPath      = new List<Vector3>();
-
+   
     private int _cost = 10; // 한 셀 이동 비용
 
     private static AStarPathfinder _instance;
