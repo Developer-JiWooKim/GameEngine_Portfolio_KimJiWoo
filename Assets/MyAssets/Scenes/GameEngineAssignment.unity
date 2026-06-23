@@ -5490,7 +5490,7 @@ MonoBehaviour:
   _arcaneMaze: {fileID: 1013836944}
   _physicalSeed: 1001
   _arcaneSeed: 2002
-  _overlapCheckRadius: 0.6
+  _overlapCheckRadius: 0.5
   _fogWarSystem: {fileID: 1179157518}
   _physicalNavMeshSurface: {fileID: 988057090}
   _arcaneNavMeshSurface: {fileID: 133995910}

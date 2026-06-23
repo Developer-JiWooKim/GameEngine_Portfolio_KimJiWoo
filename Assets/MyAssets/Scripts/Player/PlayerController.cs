@@ -1,72 +1,60 @@
 using UnityEngine;
-using FischlWorks_FogWar; // #TODO: 제미니 코드
+using FischlWorks_FogWar;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 10f;
     [SerializeField] private int   _maxHp     = 3;
-    [SerializeField] private float _sightRange = 10f; // #TODO: 제미니 코드
+    [SerializeField] private float _sightRange = 10f;
 
-    private PlayerInput _playerInput;
-    private PlayerMove  _playerMove;
+    private PlayerInputHandler _playerInputHandler;
+    private PlayerMove         _playerMove;    
+
+    private csFogWar             _fogWarSystem;
+    private csFogWar.FogRevealer _myRevealer;
 
     private int _currentHp;
-
-    // #TODO: 제미니 코드
-    private csFogWar             _fogWarSystem;
-    private csFogWar.FogRevealer _myRevealer; 
 
     public int CurrentHp => _currentHp;
     public int MaxHp => _maxHp;
 
     public event System.Action<int, int> OnHPChanged;  // 체력이 변경됐을 때 (현재, 최대) 이벤트
-    public event System.Action OnDead;                 // 플레이어 체력이 0이 되어 죽었을 때 이벤트 
+    public event System.Action           OnDead;       // 플레이어 체력이 0이 되어 죽었을 때 이벤트 
 
     private void Awake() => Initialize();
-
-    /// <summary>
-    /// 초기화 메소드
-    /// </summary>
     private void Initialize()
     {
-        _playerInput = GetComponent<PlayerInput>();
-        _playerMove  = GetComponent<PlayerMove>();
+        _playerInputHandler = GetComponent<PlayerInputHandler>();
+        _playerMove         = GetComponent<PlayerMove>();
 
         _currentHp = _maxHp;
     }
 
-
-    // #TODO: 제미니 코드
+    /// <summary>
+    /// 외부 에셋(AOS Fog System)과 PlayerController 연결 메소드
+    /// </summary>
     public void RegisterToFogSystem(csFogWar fogWarSystem)
     {
         _fogWarSystem = fogWarSystem;
 
         if (_fogWarSystem != null)
         {
-            // 1. 에셋 규칙에 맞는 전용 생성자를 사용하여 객체를 생성합니다.
-            // 인자 순서: (추적할 Transform, 시야 반지름, 소속 팀이 아니라 Update에서 움직일때만 할건지 bool인데?)
+            // 에셋 규칙에 맞는 전용 생성자를 사용하여 객체를 생성
+            // 인자 순서: (추적할 Transform, 시야 반지름, Update에서 움직일때만)
             _myRevealer = new csFogWar.FogRevealer(this.transform, (int)_sightRange, true);
 
-            // 2. private 리스트인 _fogRevealers에 직접 접근하는 대신, 
-            // 에셋 내부 전용 공개 메서드인 'AddFogRevealer'를 호출하여 등록합니다.
+            // private 리스트인 _fogRevealers에 직접 접근하는 대신, 
+            // 에셋 내부 전용 공개 메서드인 'AddFogRevealer'를 호출하여 등록
             _fogWarSystem.AddFogRevealer(_myRevealer);
         }
     }
 
-
     private void Update()
     {
-        // 플레이어 키보드 입력 감지
-        if (UnityEngine.InputSystem.Keyboard.current is not null)
-        {
-            _playerInput.InputKeyboardValue();
+        // PlayerInputHandler가 onActionTriggered 콜백으로 갱신해둔 입력값을 그대로 읽어서 사용
+        Vector3 dir = new Vector3(_playerInputHandler.InputVector.x, 0, _playerInputHandler.InputVector.y);
 
-            // PlayerInput 컴포넌트에서 감지한 플레이어 입력 값(Vector2)을 Vector3로 바꿔서 변수에 저장 
-            Vector3 dir = new Vector3(_playerInput.InputVector.x, 0, _playerInput.InputVector.y);
-
-            // PlayerMove 컴포넌트에 방향과 속력을 전달해서 플레이어를 이동
-            _playerMove.Move(dir, _moveSpeed);
-        }        
+        _playerMove.Move(dir, _moveSpeed);               
     }
 
     /// <summary>

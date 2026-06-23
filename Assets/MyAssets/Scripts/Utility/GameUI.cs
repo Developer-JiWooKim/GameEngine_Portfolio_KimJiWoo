@@ -203,7 +203,7 @@ public class GameUI : MonoBehaviour
         _resultTimeText.text = $"End Time : {GameManager.Instance.GameTimer.GetFormattedTime()}";
         _resultPanel.SetActive(true);
         
-        _player.GetComponent<PlayerInput>().enabled = false;
+        _player.GetComponent<PlayerInputHandler>().enabled = false;
     }
 
     /// <summary>

@@ -23,7 +23,7 @@ public class MazeLayerManager : MonoBehaviour
     [SerializeField] private int _arcaneSeed   = 2002;
 
     [Header("Layer Switch Check")]
-    [SerializeField] private float _overlapCheckRadius = 0.6f; // 전환 시 플레이어 위치에서 벽과의 겹침을 검사할 반경
+    [SerializeField] private float _overlapCheckRadius = 0.5f; // 전환 시 플레이어 위치에서 벽과의 겹침을 검사할 반경
 
     [Header("Fog War System")]
     [SerializeField] private csFogWar _fogWarSystem;
@@ -43,12 +43,10 @@ public class MazeLayerManager : MonoBehaviour
     private int _physicalWallMask;
     private int _arcaneWallMask;
 
-    private PlayerInput _playerInput;
+    private PlayerInputHandler _playerInputHandler;
 
     private LayerType _currentLayer = LayerType.Physical;
-    public LayerType CurrentLayer => _currentLayer;
-
-    
+    public LayerType CurrentLayer => _currentLayer;    
 
     public event System.Action<LayerType> OnLayerChanged;
     public event System.Action            OnLayerSwitchBlocked; // 전환 실패(벽에 끼임) 시 호출, 사운드/전환 불가 UI 혹은 화면 쉐이킹?
@@ -69,9 +67,9 @@ public class MazeLayerManager : MonoBehaviour
     }
     private void OnDestroy()
     {
-        if(_playerInput != null)
+        if(_playerInputHandler != null)
         {
-            _playerInput.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
+            _playerInputHandler.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
         }
     }
 
@@ -95,13 +93,13 @@ public class MazeLayerManager : MonoBehaviour
         _physicalMaze.SetSeed(_physicalSeed);
         _physicalMaze.SetSize(cols, rows);
         _physicalMaze.Generate();
-        _physicalNavMeshSurface.BuildNavMesh(); // Physical 전용 NavMesh 베이크
+        _physicalNavMeshSurface.BuildNavMesh(); // Physical 전용 NavMesh Bake
 
         _arcaneMaze.SetSeed(_arcaneSeed);
         _arcaneMaze.SetSize(cols, rows);
         _arcaneMaze.Generate();
-        _arcaneNavMeshSurface.BuildNavMesh(); // Arcane 전용 NavMesh 베이크
-        _arcaneNavMeshSurface.RemoveData();   // 시작은 Physical이 활성이므로 Arcane 데이터는 일단 빼둠
+        _arcaneNavMeshSurface.BuildNavMesh(); // Arcane 전용 NavMesh Bake
+        _arcaneNavMeshSurface.RemoveData();   // 시작은 Physical이므로 Arcane 데이터는 일단 빼둠
 
         _currentLayer = LayerType.Physical;
         _currentWallLayerMask = _physicalWallMask;
@@ -112,22 +110,21 @@ public class MazeLayerManager : MonoBehaviour
         if(_fogWarSystem != null)
         {            
             _fogWarSystem.ScanLevel();
-
         }
     }
 
     /// <summary>
     /// 런타임에 스폰된 플레이어의 PlayerInput을 등록, 레이어 전환 이벤트 구독
     /// </summary>
-    public void RegisterPlayerInput(PlayerInput playerInput)
+    public void RegisterPlayerInput(PlayerInputHandler playerInputHandler)
     {
-        if (_playerInput != null)
+        if (_playerInputHandler != null)
         {
-            _playerInput.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
+            _playerInputHandler.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
         }
 
-        _playerInput = playerInput;
-        _playerInput.OnLayerSwitchRequested += HandleLayerSwitchRequested;
+        _playerInputHandler = playerInputHandler;
+        _playerInputHandler.OnLayerSwitchRequested += HandleLayerSwitchRequested;
     }
 
     private void HandleLayerSwitchRequested(Vector3 playerPosition)
@@ -135,7 +132,7 @@ public class MazeLayerManager : MonoBehaviour
         TrySwitchLayer(playerPosition);
     }
 
-    public bool TrySwitchLayer(Vector3 playerPosition)
+    private bool TrySwitchLayer(Vector3 playerPosition)
     {
         LayerType targetLayer = _currentLayer == LayerType.Physical ? LayerType.Arcane : LayerType.Physical;
 
@@ -176,11 +173,10 @@ public class MazeLayerManager : MonoBehaviour
             _physicalNavMeshSurface.RemoveData();
         }
 
-        // #TODO: 제미니 코드
         if(_fogWarSystem != null)
         {
             _fogWarSystem.ScanLevel();
-            _fogWarSystem.shadowcaster.ResetTileVisibility(); // 레이어 전환 시 이전 시야 기록 초기화
+            _fogWarSystem.shadowcaster.ResetTileVisibility(); // 레이어 전환 시 이전 시야 기록 초기화 TODO#: 꼭 해야되는가?
         }
 
         OnLayerChanged?.Invoke(layer);

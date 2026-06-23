@@ -42,15 +42,14 @@ public class UnitSpawner : MonoBehaviour
         SpawnPlayer();
         SpawnMonsters();
 
-        // #TODO: 제미니 코드
         if(_mazeLayerManager != null && _mazeLayerManager.FogWarSystem != null)
         {
             FischlWorks_FogWar.csFogWar fogWar = _mazeLayerManager.FogWarSystem;
 
-            // 1. 실시간 생성된 초기 미로 벽을 감지하도록 첫 스캔 실행
+            // 실시간 생성된 초기 미로 벽을 감지하도록 첫 스캔 실행
             fogWar.ScanLevel();
 
-            // 2. 스폰된 플레이어에게 안개 시스템을 넘겨주며 시야를 켭니다.
+            // 스폰된 플레이어에게 안개 시스템을 넘겨주며 시야를 킴
             PlayerController pc = Player;
             if (pc != null)
             {
@@ -83,7 +82,8 @@ public class UnitSpawner : MonoBehaviour
             followCamera.Target = _player.transform;
         }        
 
-        PlayerInput playerInput = _player.GetComponent<PlayerInput>();
+        // 플레이어의 입력(Tab) 시 미로를 전환하는 이벤트를 연결
+        PlayerInputHandler playerInput = _player.GetComponent<PlayerInputHandler>();
         if(playerInput != null)
         {
             _mazeLayerManager.RegisterPlayerInput(playerInput);
