@@ -1,8 +1,10 @@
 using UnityEngine;
 
 /// <summary>
-/// 플레이어 이동 시 부드럽게 따라가는 컴포넌트
+/// [미사용 - 이전 Algorithm_Portfolio_KimJiWoo에서 직접 구현한 플레이어를 따라다니는 카메라 제어 컴포넌트(SmoothDamp 기반)]
+/// 현재 프로젝트에서는 Cinemachine으로 대체
 /// </summary>
+[System.Obsolete("Cinemachine(CinemachineCamera + CinemachineBrain)으로 대체됨. 더 이상 사용하지 않음")]
 public class FollowCamera : MonoBehaviour
 {   
     [SerializeField] private float _smoothTime = 0.3f; // 높을수록 더 느리게 따라감

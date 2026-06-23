@@ -1,18 +1,24 @@
 using System.Collections.Generic;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class UnitSpawner : MonoBehaviour
 {
     [SerializeField] private MazeLayerManager _mazeLayerManager;
 
+    [SerializeField] private CinemachineCamera _followPlayerCamera;
+    [SerializeField] private CinemachineCamera _introCamera;    
+
     [SerializeField] private GameObject _monsterPrefab;
     [SerializeField] private GameObject _playerPrefab;
 
     [SerializeField] private int   _monsterCount = 5;
-    [SerializeField] private float _spawnY       = 1f; // 유닛 스폰 y 좌표
+    [SerializeField] private float _spawnY       = 1f; // 유닛 스폰 y 좌표    
 
     private Vector2Int _playerStartCell; // 플레이어 시작 셀
     private Vector2Int _goalCell;        // 목표 지점 셀
+
+    private float _introHoldDuration = .5f; // 씬 재시작 시 안정적인 카메라 전환을 위해 기다릴 시간
 
     private GameObject _player;
 
@@ -63,6 +69,7 @@ public class UnitSpawner : MonoBehaviour
         _activeMaze = _mazeLayerManager.GetActiveMaze();
 
         _playerStartCell = new Vector2Int(0, 0);
+
         _goalCell = new Vector2Int(_activeMaze.Cols - 1, _activeMaze.Rows - 1);
     }
 
@@ -76,17 +83,36 @@ public class UnitSpawner : MonoBehaviour
 
         _player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
 
-        FollowCamera followCamera = Camera.main.GetComponent<FollowCamera>();
-        if(followCamera != null)
+        if(_followPlayerCamera != null && _introCamera != null)
         {
-            followCamera.Target = _player.transform;
-        }        
+            _followPlayerCamera.Target.TrackingTarget = _player.transform;
+
+            // 즉시 Priority를 높이면 블렌딩이 생략되는 현상 생김
+            // -> Awaitable.WaitForSecondsAsync()로 _introHoldDuration 만큼 기다린 후 _followPlayerCamera의 Priority를 높임
+            _ = SwitchToFollowCameraAfterDelay();
+        }
 
         // 플레이어의 입력(Tab) 시 미로를 전환하는 이벤트를 연결
         PlayerInputHandler playerInput = _player.GetComponent<PlayerInputHandler>();
         if(playerInput != null)
         {
             _mazeLayerManager.RegisterPlayerInput(playerInput);
+        }
+    }
+
+    /// <summary>
+    /// 인트로 카메라를 일정 시간 동안 무조건 보여준 뒤, 추적 카메라의 우선순위를 올려 카메라 전환시키는 메소드
+    /// </summary>
+    private async Awaitable SwitchToFollowCameraAfterDelay()
+    {
+        try
+        {
+            await Awaitable.WaitForSecondsAsync(_introHoldDuration, destroyCancellationToken);
+            _followPlayerCamera.Priority = _introCamera.Priority + 1;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning(e);
         }
     }
 
