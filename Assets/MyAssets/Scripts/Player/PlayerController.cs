@@ -1,5 +1,6 @@
 using UnityEngine;
 using FischlWorks_FogWar;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,7 +9,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _sightRange = 10f;
 
     private PlayerInputHandler _playerInputHandler;
-    private PlayerMove         _playerMove;    
+    private PlayerMove         _playerMove;
+
+    private CinemachineImpulseSource _impulseSource;
 
     private csFogWar             _fogWarSystem;
     private csFogWar.FogRevealer _myRevealer;
@@ -26,6 +29,8 @@ public class PlayerController : MonoBehaviour
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
         _playerMove         = GetComponent<PlayerMove>();
+
+        _impulseSource = GetComponent<CinemachineImpulseSource>();
 
         _currentHp = _maxHp;
     }
@@ -65,6 +70,9 @@ public class PlayerController : MonoBehaviour
         if (_currentHp <= 0) return;
 
         _currentHp--;
+
+        // 피격 시 카메라 흔들림 발생 (Cinemachine Impulse Listener가 받아서 처리)
+        _impulseSource?.GenerateImpulse();
 
         OnHPChanged?.Invoke(_currentHp, _maxHp);
 

@@ -17,6 +17,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _hpText;
     [SerializeField] private TextMeshProUGUI _timerText;
     [SerializeField] private Button          _endButton;
+    [SerializeField] private DamageflashUI   _damageflashUI;
 
     [Header("Result Panel")]
     [SerializeField] private GameObject      _resultPanel;
@@ -28,7 +29,7 @@ public class GameUI : MonoBehaviour
 
     [Header("참조")]
     [SerializeField] private MazeLayerManager _mazeLayerManager;
-    [SerializeField] private UnitSpawner      _unitSpawner;
+    [SerializeField] private UnitSpawner      _unitSpawner;    
 
     [Header("Fixed Size")]
     [Tooltip("고정 미로 크기/몬스터 수. true면 Setup Panel을 건너뛰고 바로 시작")]
@@ -180,6 +181,7 @@ public class GameUI : MonoBehaviour
     private void SetInGamePanel()
     {
         _player.OnHPChanged += UpdateHp;
+        _player.OnHPChanged += (current, max) => _damageflashUI?.Flash();
         _player.OnDead      += () => GameManager.Instance.GameOver();
 
         GameManager.Instance.OnClear    += () => ShowResult("CLEAR!!");
@@ -188,6 +190,7 @@ public class GameUI : MonoBehaviour
         _inGamePanel.SetActive(true);
 
         UpdateHp(_player.CurrentHp, _player.MaxHp);
+
         GameManager.Instance.GameStart();
     }
 
