@@ -3066,7 +3066,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c29c74b8997e35e40b612c31fad02375, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
-  _library: {fileID: 0}
+  _library: {fileID: 11400000, guid: da58c0171af6f5944b9c9fe1d5d52fa0, type: 2}
   _sfxSource: {fileID: 0}
   _bgmSource: {fileID: 0}
   _bgmVolume: 0.5
