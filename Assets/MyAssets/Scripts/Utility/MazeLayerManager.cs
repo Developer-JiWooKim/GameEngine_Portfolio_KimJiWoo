@@ -28,9 +28,20 @@ public class MazeLayerManager : MonoBehaviour
     [Header("Fog War System")]
     [SerializeField] private csFogWar _fogWarSystem;
 
-    [Header("NavMesh")]
+    [Header("NavMesh Surface")]
     [SerializeField] private NavMeshSurface _physicalNavMeshSurface;
     [SerializeField] private NavMeshSurface _arcaneNavMeshSurface;
+
+    [Header("Layer Transition FX")]
+    [SerializeField] private ScreenRippleController _rippleController;
+    [SerializeField] private float _rippleInDuration   = 0.2f;
+    [SerializeField] private float _rippleHoldDuration = 0.1f; // 일렁임이 최고조일 때 실제로 미로를 바꿔치기하는 구간
+    [SerializeField] private float _rippleOutDuration  = 0.2f;
+
+    private bool _isTransitioning = false;
+
+    private int _physicalWallMask;
+    private int _arcaneWallMask;
 
     private static MazeLayerManager _instance = null;
     public static MazeLayerManager Instance => _instance;
@@ -38,10 +49,7 @@ public class MazeLayerManager : MonoBehaviour
     private int _currentWallLayerMask;
     public int CurrentWallLayerMask => _currentWallLayerMask;
 
-    public csFogWar FogWarSystem => _fogWarSystem;
-
-    private int _physicalWallMask;
-    private int _arcaneWallMask;
+    public csFogWar FogWarSystem => _fogWarSystem;    
 
     private PlayerInputHandler _playerInputHandler;
 
@@ -134,6 +142,8 @@ public class MazeLayerManager : MonoBehaviour
 
     private bool TrySwitchLayer(Vector3 playerPosition)
     {
+        if (_isTransitioning) return false; // 전환 연출 중 또 전환 연출하는걸 방지
+
         LayerType targetLayer = _currentLayer == LayerType.Physical ? LayerType.Arcane : LayerType.Physical;
 
         int targetWallMask = targetLayer == LayerType.Physical ? _physicalWallMask : _arcaneWallMask;
@@ -146,8 +156,97 @@ public class MazeLayerManager : MonoBehaviour
             return false;
         }
 
-        SetActiveLayer(targetLayer);
+        _ = PlayLayerTransition(targetLayer);
+        
         return true;
+    }
+
+    /// <summary>
+    /// 타이머/입력/유닛 움직임을 멈추고 화면 일렁임 효과 안에서 실제 미로를 교체한 뒤 다시 재생시키는 시퀀스
+    /// </summary>
+    private async Awaitable PlayLayerTransition(LayerType targetLayer)
+    {
+        if(_playerInputHandler == null)
+        {
+            Debug.LogError("MazeLayerManager PlayLayerTransition(): _playerInputHandler is Null");
+            return;
+        }
+
+        try
+        {
+            _isTransitioning = true;
+
+            GameManager.Instance.PauseGame();
+        
+            // PlayerInputHandler.OnDisable()에서 입력값도 같이 초기화됨
+           _playerInputHandler.enabled = false;        
+
+            await FadeRipple(0f, 1f, _rippleInDuration);
+            await WaitUnscaled(_rippleHoldDuration);
+
+            SetActiveLayer(targetLayer); // 일렁임이 화면을 가리는 동안 레이어 교체
+
+            await FadeRipple(1f, 0f, _rippleOutDuration);
+
+            _playerInputHandler.enabled = true;
+
+            GameManager.Instance.ResumeGame();
+
+            _isTransitioning = false;
+        }
+        catch (System.Exception)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// 일렁임 강도를 duration 동안 from -> to로 보간 (unscaled time 기준)
+    /// </summary>
+    private async Awaitable FadeRipple(float from, float to, float duration)
+    {
+        if (_rippleController == null) return;
+
+        try
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+
+                _rippleController.SetIntensity(Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration)));
+
+                await Awaitable.NextFrameAsync(destroyCancellationToken);
+            }
+
+            _rippleController.SetIntensity(0f);
+        }
+        catch (System.Exception)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// Time.timeScale과 무관하게 실제 시간 기준으로 대기
+    /// </summary>
+    private async Awaitable WaitUnscaled(float duration)
+    {
+        try
+        {
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                await Awaitable.NextFrameAsync(destroyCancellationToken);
+            }
+        }
+        catch (System.Exception)
+        {
+
+        }
     }
 
     private void SetActiveLayer(LayerType layer)

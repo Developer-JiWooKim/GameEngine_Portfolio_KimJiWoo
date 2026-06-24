@@ -1,4 +1,3 @@
-using FischlWorks_FogWar;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +16,7 @@ public class GameManager : MonoBehaviour
 
     public int CurrentCollectedKeyCount => _currentCollectedKeyCount;
     public int RequiredKeyCount => _requiredKeyCount;
+    public bool IsPaused { get; private set; }
 
     public event System.Action<int, int> OnKeyCollected;     // 열쇠를 모을때마다 발생할 이벤트(효과음, UI업데이트)
     public event System.Action           OnAllKeysCollected; // 모든 열쇠를 모은 시점에 1회 발생할 이벤트(Goal Point 생성)
@@ -43,6 +43,35 @@ public class GameManager : MonoBehaviour
         _gameTimer.UpdateTime();
     }
 
+    /// <summary>
+    /// 게임 일시정지 메소드
+    /// 단, GameTimer는 따로 멈추지 않음 -> _gameTimer.UpdateTime()이 Time.deltaTime 기반이라 timeScale이 0이면 자동으로 같이 멈춤
+    /// </summary>
+    public void PauseGame()
+    {
+        if (IsPaused) return;
+        
+        IsPaused = true;
+
+        Time.timeScale = 0f;
+    }
+
+    /// <summary>
+    /// 게임 일시정지 해제 메소드
+    /// </summary>
+    public void ResumeGame()
+    {
+        if (!IsPaused) return;
+
+        IsPaused = false;
+
+        Time.timeScale = 1f;
+    }
+
+    /// <summary>
+    /// Key 하나를 회수 했을 때 호출되는 메소드
+    /// 현재 모은 Key 개수를 하나 증가, 관련 이벤트 실행, 모든 키를 모았을 때도 관련 이벤트 실행
+    /// </summary>
     public void CollectKey()
     {
         if (_currentCollectedKeyCount >= _requiredKeyCount) return;
