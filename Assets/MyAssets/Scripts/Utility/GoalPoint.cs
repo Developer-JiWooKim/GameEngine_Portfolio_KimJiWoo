@@ -7,7 +7,9 @@ public class GoalPoint : MonoBehaviour
     /// </summary>
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!other.CompareTag("Player")) return;        
+
+        SoundManager.Instance?.PlayGoalReached();
 
         GameManager.Instance.Clear();
     }

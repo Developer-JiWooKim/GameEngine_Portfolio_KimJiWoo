@@ -8,6 +8,8 @@ public class Key : MonoBehaviour
 
         GameManager.Instance.CollectKey();
 
+        SoundManager.Instance?.PlayKeyCollected();
+
         Destroy(this.gameObject);
     }
 }

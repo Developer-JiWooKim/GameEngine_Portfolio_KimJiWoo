@@ -98,7 +98,9 @@ public class GameManager : MonoBehaviour
         foreach (var monster in FindObjectsByType<MonsterController>())
         {
             monster.Target = null;
-        }           
+        }
+
+        SoundManager.Instance?.PlayGameClear();
 
         OnClear?.Invoke();
     }
@@ -117,6 +119,8 @@ public class GameManager : MonoBehaviour
         _isGameEnd = true;
 
         _gameTimer.StopTimer();
+
+        SoundManager.Instance?.PlayGameOver();
 
         OnGameOver?.Invoke();
     }

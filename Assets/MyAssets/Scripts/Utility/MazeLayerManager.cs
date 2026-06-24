@@ -152,6 +152,8 @@ public class MazeLayerManager : MonoBehaviour
 
         if(isBlocked)
         {
+            SoundManager.Instance?.PlayLayerSwitchBlocked();
+
             OnLayerSwitchBlocked?.Invoke();
             return false;
         }
@@ -175,6 +177,8 @@ public class MazeLayerManager : MonoBehaviour
         try
         {
             _isTransitioning = true;
+
+            SoundManager.Instance?.PlayLayerSwitch();
 
             GameManager.Instance.PauseGame();
         
@@ -275,10 +279,11 @@ public class MazeLayerManager : MonoBehaviour
         if(_fogWarSystem != null)
         {
             _fogWarSystem.ScanLevel();
-            _fogWarSystem.shadowcaster.ResetTileVisibility(); // 레이어 전환 시 이전 시야 기록 초기화 TODO#: 꼭 해야되는가?
         }
 
         OnLayerChanged?.Invoke(layer);
+
+        SoundManager.Instance?.PlayBGMForLayer(layer);
     }
 
     /// <summary>

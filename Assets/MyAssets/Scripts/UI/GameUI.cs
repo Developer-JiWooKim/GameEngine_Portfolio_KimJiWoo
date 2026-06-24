@@ -16,6 +16,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private GameObject      _inGamePanel;
     [SerializeField] private TextMeshProUGUI _hpText;
     [SerializeField] private TextMeshProUGUI _timerText;
+    [SerializeField] private TextMeshProUGUI _keyCountText;
     [SerializeField] private Button          _endButton;
     [SerializeField] private DamageflashUI   _damageflashUI;
 
@@ -184,12 +185,14 @@ public class GameUI : MonoBehaviour
         _player.OnHPChanged += (current, max) => _damageflashUI?.Flash();
         _player.OnDead      += () => GameManager.Instance.GameOver();
 
+        GameManager.Instance.OnKeyCollected += UpdateKeyCount;
         GameManager.Instance.OnClear    += () => ShowResult("CLEAR!!");
-        GameManager.Instance.OnGameOver += () => ShowResult("GAME OVER..");
+        GameManager.Instance.OnGameOver += () => ShowResult("GAME OVER..");       
 
         _inGamePanel.SetActive(true);
 
         UpdateHp(_player.CurrentHp, _player.MaxHp);
+        UpdateKeyCount(GameManager.Instance.CurrentCollectedKeyCount, GameManager.Instance.RequiredKeyCount);
 
         GameManager.Instance.GameStart();
     }
@@ -215,5 +218,12 @@ public class GameUI : MonoBehaviour
     private void UpdateHp(int current, int max)
     {
         _hpText.text = $"HP : {current} / {max}";
+    }
+
+    private void UpdateKeyCount(int current, int required)
+    {
+        if (_keyCountText == null) return;
+
+        _keyCountText.text = $"Keys : {current} / {required}";
     }
 }

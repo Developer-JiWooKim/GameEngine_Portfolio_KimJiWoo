@@ -226,6 +226,8 @@ public class UnitSpawner : MonoBehaviour
         spawnPos.y = _spawnY;
 
         _goalPointInstance = Instantiate(_goalPointPrefab, spawnPos, Quaternion.identity);
+
+        SoundManager.Instance?.PlayGoalSpawned();
     }
 
     /// <summary>

@@ -74,6 +74,8 @@ public class PlayerController : MonoBehaviour
         // 피격 시 카메라 흔들림 발생 (Cinemachine Impulse Listener가 받아서 처리)
         _impulseSource?.GenerateImpulse();
 
+        SoundManager.Instance?.PlayPlayerDamaged();
+
         OnHPChanged?.Invoke(_currentHp, _maxHp);
 
         if (_currentHp <= 0) OnDead?.Invoke();
