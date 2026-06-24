@@ -4,32 +4,40 @@ using UnityEngine;
 
 public class UnitSpawner : MonoBehaviour
 {
+    [Header("Maze Layer Manager")]
     [SerializeField] private MazeLayerManager _mazeLayerManager;
 
+    [Header("Cinemachine Cameras")]
     [SerializeField] private CinemachineCamera _followPlayerCamera;
-    [SerializeField] private CinemachineCamera _introCamera;    
+    [SerializeField] private CinemachineCamera _introCamera;
 
+    [Header("Prefabs")]
     [SerializeField] private GameObject _monsterPrefab;
     [SerializeField] private GameObject _playerPrefab;
+    [SerializeField] private GameObject _keyPrefab;
+    [SerializeField] private GameObject _goalPointPrefab;
 
-    [SerializeField] private int   _monsterCount = 5;
-    [SerializeField] private float _spawnY       = 1f; // 유닛 스폰 y 좌표    
+    private int _monsterCount = 5;
+    private int _keyCount     = 5;
+
+    private float _spawnY            = 1f;   // 유닛 스폰 y 좌표
+    private float _introHoldDuration = 0.5f; // 씬 재시작 시 안정적인 카메라 전환을 위해 기다릴 시간
 
     private Vector2Int _playerStartCell; // 플레이어 시작 셀
-    private Vector2Int _goalCell;        // 목표 지점 셀
-
-    private float _introHoldDuration = .5f; // 씬 재시작 시 안정적인 카메라 전환을 위해 기다릴 시간
+    private Vector2Int _goalCell;        // 목표 지점 셀    
 
     private GameObject _player;
+    private GameObject _goalPointInstance;
 
     private MazeGenerator _activeMaze;
 
+    private readonly List<GameObject> _spawnedKeys = new List<GameObject>();
+
     public PlayerController Player => _player?.GetComponent<PlayerController>();
 
-    // 생성된 몬스터를 List로 관리
     private List<GameObject> _monsters = new List<GameObject>();
     public List<GameObject> Monsters => _monsters;
-    
+
     /// <summary>
     /// 몬스터 수 설정 메소드(UI에서 호출)
     /// </summary>
@@ -38,30 +46,53 @@ public class UnitSpawner : MonoBehaviour
         _monsterCount = count;
     }
 
+    private bool CheckSerializeFieldIsNull()
+    {
+        if (_mazeLayerManager == null || _followPlayerCamera == null ||
+            _introCamera == null || _monsterPrefab == null ||
+            _playerPrefab == null || _keyPrefab == null || _goalPointPrefab == null)
+        {
+            Debug.LogError("UnitSpawner CheckSerializeFieldNull():SerializeField 중 Null이 있음");
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /// <summary>
-    /// 몬스터들을 미로의 랜덤한 위치에 스폰하는 메소드
+    /// 유닛들을 미로의 랜덤한 위치에 스폰하는 메소드
     /// </summary>
     public void SpawnAll()
     {
+        // SerializeField에서 null이 하나라도 있으면 Spawn X
+        if (CheckSerializeFieldIsNull()) return;
+
         ClearAll();
         Initialize();
         SpawnPlayer();
         SpawnMonsters();
+        SpawnKeys();
 
-        if(_mazeLayerManager != null && _mazeLayerManager.FogWarSystem != null)
+        if (GameManager.Instance == null || _mazeLayerManager == null
+            || _mazeLayerManager.FogWarSystem == null || Player == null)
         {
-            FischlWorks_FogWar.csFogWar fogWar = _mazeLayerManager.FogWarSystem;
-
-            // 실시간 생성된 초기 미로 벽을 감지하도록 첫 스캔 실행
-            fogWar.ScanLevel();
-
-            // 스폰된 플레이어에게 안개 시스템을 넘겨주며 시야를 킴
-            PlayerController pc = Player;
-            if (pc != null)
-            {
-                pc.RegisterToFogSystem(fogWar);
-            }
+            Debug.LogError("UnitSpawner SpawnAll():Null이 있음");
+            return;
         }
+
+        // 열쇠를 전부 모으면 골 포인트를 생성하도록 구독
+        GameManager.Instance.OnAllKeysCollected += SpawnGoalPoint;
+
+        FischlWorks_FogWar.csFogWar fogWar = _mazeLayerManager.FogWarSystem;
+
+        // 실시간 생성된 초기 미로 벽을 감지하도록 첫 스캔 실행
+        fogWar.ScanLevel();
+
+        // 스폰된 플레이어에게 안개 시스템을 넘겨주며 시야를 킴
+        PlayerController pc = Player;
+        pc.RegisterToFogSystem(fogWar);
     }
 
     private void Initialize()
@@ -75,26 +106,20 @@ public class UnitSpawner : MonoBehaviour
 
     private void SpawnPlayer()
     {
-        if (_playerPrefab == null) return;
-
         Vector3 spawnPos = _activeMaze.GetCell(_playerStartCell.x, _playerStartCell.y).worldCenter;
 
         spawnPos.y = _spawnY;
 
         _player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
+        
+        _followPlayerCamera.Target.TrackingTarget = _player.transform;
 
-        if(_followPlayerCamera != null && _introCamera != null)
-        {
-            _followPlayerCamera.Target.TrackingTarget = _player.transform;
-
-            // 즉시 Priority를 높이면 블렌딩이 생략되는 현상 생김
-            // -> Awaitable.WaitForSecondsAsync()로 _introHoldDuration 만큼 기다린 후 _followPlayerCamera의 Priority를 높임
-            _ = SwitchToFollowCameraAfterDelay();
-        }
+        // 즉시 Priority를 높이면 블렌딩이 생략되는 현상 생김
+        // -> Awaitable.WaitForSecondsAsync()로 _introHoldDuration 만큼 기다린 후 _followPlayerCamera의 Priority를 높임
+        _ = SwitchToFollowCameraAfterDelay();
 
         // 플레이어의 입력(Tab) 시 미로를 전환하는 이벤트를 연결
-        PlayerInputHandler playerInput = _player.GetComponent<PlayerInputHandler>();
-        if(playerInput != null)
+        if (_player.TryGetComponent(out PlayerInputHandler playerInput))
         {
             _mazeLayerManager.RegisterPlayerInput(playerInput);
         }
@@ -108,24 +133,48 @@ public class UnitSpawner : MonoBehaviour
         try
         {
             await Awaitable.WaitForSecondsAsync(_introHoldDuration, destroyCancellationToken);
+
             _followPlayerCamera.Priority = _introCamera.Priority + 1;
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            Debug.LogWarning(e);
         }
     }
 
     private void SpawnMonsters()
     {
-        if (_monsterPrefab == null) return;
+        List<Cell> candidates = GetCandidatesCellList();
 
+        int spawnCount = Mathf.Min(_monsterCount, candidates.Count);
+
+        // _monsterCount 수만큼 몬스터 스폰
+        for (int i = 0; i < spawnCount; i++)
+        {
+            // Cell.worldCenter로 몬스터 스폰해서 위치가 벽과 겹치지 않게
+            Vector3 spawnPos = candidates[i].worldCenter;
+            spawnPos.y = _spawnY;
+
+            GameObject monster = Instantiate(_monsterPrefab, spawnPos, Quaternion.identity);
+            if (monster.TryGetComponent(out MonsterController mc) && _player != null)
+            {
+                mc.Target = _player.transform;
+            }
+
+            // 스폰한 몬스터들을 리스트에 추가
+            _monsters.Add(monster);
+        }
+    }
+
+    /// <summary>
+    /// 랜덤 스폰할(시작점, 골 포인트 제외) Candidates 리스트 생성 메소드
+    /// </summary>
+    private List<Cell> GetCandidatesCellList()
+    {
         List<Cell> candidates = new List<Cell>();
 
-        // 몬스터를 스폰 가능한 셀들 리스트에 추가
         foreach (Cell cell in _activeMaze.AllCells)
         {
-            // 플레이어 시작점, 목표 지점에는 몬스터 생성 X
+            // 플레이어 시작점, 목표 지점에는 생성 X
             if (cell.col == _playerStartCell.x && cell.row == _playerStartCell.y) continue;
             if (cell.col == _goalCell.x && cell.row == _goalCell.y) continue;
 
@@ -139,41 +188,78 @@ public class UnitSpawner : MonoBehaviour
             (candidates[i], candidates[j]) = (candidates[j], candidates[i]);
         }
 
-        // _monsterCount 수만큼 몬스터 스폰
-        for (int i = 0; i < _monsterCount; i++)
+        return candidates;
+    }
+
+    /// <summary>
+    /// 시작/목표 셀을 제외한 랜덤 셀에 열쇠를 배치하는 메소드.
+    /// 레이어 간 셀 좌표(worldCenter)는 공유되므로, 활성 레이어 기준 셀 정보만 읽어와도 충분함.
+    /// </summary>
+    private void SpawnKeys()
+    {
+        List<Cell> candidates = GetCandidatesCellList();
+
+        int spawnCount = Mathf.Min(_keyCount, candidates.Count);
+
+        for(int i = 0; i < spawnCount; i++)
         {
-            // Cell.worldCenter로 몬스터 스폰해서 위치가 벽과 겹치지 않게
             Vector3 spawnPos = candidates[i].worldCenter;
             spawnPos.y = _spawnY;
 
-            GameObject monster = Instantiate(_monsterPrefab, spawnPos, Quaternion.identity);
-            MonsterController mc = monster.GetComponent<MonsterController>();
-            if (mc != null && _player != null)
-            {
-                mc.Target = _player.transform;
-            }
-
-            // 스폰한 몬스터들을 리스트에 추가
-            _monsters.Add(monster);
+            GameObject key = Instantiate(_keyPrefab, spawnPos, Quaternion.identity);
+            _spawnedKeys.Add(key);
         }
     }
 
     /// <summary>
-    /// 몬스터 리스트 초기화 메소드
+    /// 골 포인트를 1개만 생성하는 메소드 (열쇠를 전부 모으면 GameManager.OnAllKeysCollected로 호출)
+    /// </summary>
+    private void SpawnGoalPoint()
+    {
+        if(_goalPointInstance != null)
+        {
+            Debug.LogError("UnitSpawner SpawnGoalPoint(): _goalPointInstance != null");
+            return;
+        }
+
+        Vector3 spawnPos = _activeMaze.GetCell(_goalCell.x, _goalCell.y).worldCenter;
+        spawnPos.y = _spawnY;
+
+        _goalPointInstance = Instantiate(_goalPointPrefab, spawnPos, Quaternion.identity);
+    }
+
+    /// <summary>
+    /// 초기화 메소드(리스트, 이벤트 구독 해제, 기존 오브젝트 제거)
     /// </summary>
     private void ClearAll()
     {
-        if(_player != null)
+        GameManager.Instance.OnAllKeysCollected -= SpawnGoalPoint;
+
+        if (_player != null)
         {
             Destroy(_player);
             _player = null;
         }
 
-        foreach (var mon in _monsters)
+        foreach (GameObject mon in _monsters)
         {
             if (mon != null) Destroy(mon);
         }
-
         _monsters.Clear();
+
+        foreach (GameObject key in _spawnedKeys)
+        {
+            if(key != null)
+            {
+                Destroy(key);
+            }
+        }
+        _spawnedKeys.Clear();
+
+        if(_goalPointInstance != null)
+        {
+            Destroy(_goalPointInstance);
+            _goalPointInstance = null;
+        }
     }
 }

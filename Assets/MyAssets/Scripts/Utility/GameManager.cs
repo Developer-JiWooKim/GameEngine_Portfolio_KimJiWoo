@@ -1,3 +1,4 @@
+using FischlWorks_FogWar;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,8 +9,18 @@ public class GameManager : MonoBehaviour
     private GameTimer _gameTimer;
     public GameTimer GameTimer => _gameTimer;    
 
-    private bool _isGameEnd = false;    
+    private bool _isGameEnd = false;
 
+    //#TODO:열쇠로 할지, 상호작용으로 할지 미정
+    private int _requiredKeyCount = 5;         // 게임 클리어 위해 모아야 되는 열쇠 개수 
+    private int _currentCollectedKeyCount = 0; // 현재 모은 키 개수
+
+    public int CurrentCollectedKeyCount => _currentCollectedKeyCount;
+    public int RequiredKeyCount => _requiredKeyCount;
+
+    public event System.Action<int, int> OnKeyCollected;     // 열쇠를 모을때마다 발생할 이벤트(효과음, UI업데이트)
+    public event System.Action           OnAllKeysCollected; // 모든 열쇠를 모은 시점에 1회 발생할 이벤트(Goal Point 생성)
+    
     public event System.Action OnClear;
     public event System.Action OnGameOver;
 
@@ -30,6 +41,20 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         _gameTimer.UpdateTime();
+    }
+
+    public void CollectKey()
+    {
+        if (_currentCollectedKeyCount >= _requiredKeyCount) return;
+
+        _currentCollectedKeyCount++;
+
+        OnKeyCollected?.Invoke(_currentCollectedKeyCount, _requiredKeyCount);
+
+        if(_currentCollectedKeyCount >= _requiredKeyCount)
+        {
+            OnAllKeysCollected?.Invoke();
+        }
     }
 
     public void Clear()

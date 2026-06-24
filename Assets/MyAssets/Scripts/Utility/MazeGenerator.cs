@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI.Table;
 
 public class MazeGenerator : MonoBehaviour
 {
@@ -14,16 +13,15 @@ public class MazeGenerator : MonoBehaviour
     [SerializeField] private float      _wallThickness = 0.3f;
     [SerializeField] private float      _wallHeight    = 3f;
 
-    [Header("Goal Point")]
-    [SerializeField] private GameObject _goalPointPrefab;
-
     [Header("Random Seed")]
     [SerializeField] private int _seed = -1;
 
     [Header("Layer Assignment")]
     [SerializeField] private string _wallLayerName = "Wall";    
     
-    // 벽 오브젝트와 그 벽들이 갖고 있는 컴포넌트(Renderer, Collider)의 참조를 묶은 Struct
+    /// <summary>
+    /// 벽 오브젝트와 그 벽들이 갖고 있는 컴포넌트(Renderer, Collider)의 참조를 묶은 Struct
+    /// </summary>
     private struct WallEntry
     {
         public GameObject gameObject;
@@ -79,22 +77,6 @@ public class MazeGenerator : MonoBehaviour
         InitGrid();
         RunDFS();
         SpawnWalls();
-        SpawnGoalPoint();
-    }
-
-    /// <summary>
-    /// 목표 지점 오브젝트 스폰 메소드
-    /// </summary>
-    private void SpawnGoalPoint()
-    {
-        if (_goalPointPrefab == null) return;
-
-        Cell goalCell = _grid[_cols - 1, _rows - 1];
-
-        Vector3 spawnPos = goalCell.worldCenter;
-        spawnPos.y = 1f;
-
-        Instantiate(_goalPointPrefab, spawnPos, Quaternion.identity, transform);
     }
 
     /// <summary>
@@ -114,7 +96,7 @@ public class MazeGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 10(_cols) x 10(_rows) 셀을 생성 후 각각의 센터를 구한 후 리스트에 저장
+    /// 셀을 생성 후 각각의 센터를 구한 후 리스트에 저장
     /// </summary>
     private void InitGrid()
     {

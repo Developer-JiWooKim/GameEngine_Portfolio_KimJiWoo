@@ -2295,7 +2295,6 @@ MonoBehaviour:
   _wallPrefab: {fileID: 2775634970881188326, guid: 56df1178e58107a4fa87f04be4329fb9, type: 3}
   _wallThickness: 0.3
   _wallHeight: 3
-  _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
   _seed: -1
   _wallLayerName: Wall_Physical
 --- !u!1 &484258037
@@ -3847,7 +3846,6 @@ MonoBehaviour:
   _wallPrefab: {fileID: 2775634970881188326, guid: 0616d25d5174add498fe09aaf1c695a5, type: 3}
   _wallThickness: 0.3
   _wallHeight: 3
-  _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
   _seed: -1
   _wallLayerName: Wall_Arcane
 --- !u!1 &1067837769
@@ -4081,8 +4079,8 @@ MonoBehaviour:
   _introCamera: {fileID: 657806357}
   _monsterPrefab: {fileID: 7092602877218490808, guid: 32621549e4849754a8a8644584fa71e0, type: 3}
   _playerPrefab: {fileID: 4083551658152284763, guid: 78d7590be1d3add4d93549951e8cc31f, type: 3}
-  _monsterCount: 5
-  _spawnY: 1
+  _keyPrefab: {fileID: 5559845971474708186, guid: 808d8aa29a207aa43b035af5320fd96f, type: 3}
+  _goalPointPrefab: {fileID: 6322480162053807700, guid: f0e3d7ee1c5f4b14e9861558e633eb78, type: 3}
 --- !u!4 &1282344941
 Transform:
   m_ObjectHideFlags: 0
