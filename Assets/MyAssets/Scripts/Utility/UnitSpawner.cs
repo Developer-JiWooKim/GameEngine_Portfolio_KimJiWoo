@@ -75,17 +75,20 @@ public class UnitSpawner : MonoBehaviour
         SpawnMonsters();
         SpawnKeys();
 
-        if (GameManager.Instance == null || _mazeLayerManager == null
-            || _mazeLayerManager.FogWarSystem == null || Player == null)
+
+        if (GameManager.Instance == null)
         {
-            Debug.LogError("UnitSpawner SpawnAll():Null이 있음");
-            Debug.LogError(GameManager.Instance + " / " + _mazeLayerManager + " / " + _mazeLayerManager.FogWarSystem
-                + " / " + Player);
+            Debug.LogError("UnitSpawner SpawnAll(): GameManager.Instance가 Null임");
             return;
         }
-
         // 열쇠를 전부 모으면 골 포인트를 생성하도록 구독
         GameManager.Instance.OnAllKeysCollected += SpawnGoalPoint;
+
+        if (_mazeLayerManager == null || _mazeLayerManager.FogWarSystem == null || Player == null)
+        {
+            Debug.LogError("UnitSpawner SpawnAll():Null이 있음");
+            return;
+        }
 
         FischlWorks_FogWar.csFogWar fogWar = _mazeLayerManager.FogWarSystem;
 

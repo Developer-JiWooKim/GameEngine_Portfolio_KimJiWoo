@@ -7,6 +7,7 @@ using Unity.Cinemachine;
 [RequireComponent(typeof(CinemachineImpulseSource))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Settings")]
     [SerializeField] private float _moveSpeed = 10f;
     [SerializeField] private int   _maxHp     = 3;
     [SerializeField] private float _sightRange = 10f;

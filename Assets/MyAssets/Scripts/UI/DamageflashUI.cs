@@ -49,25 +49,35 @@ public class DamageflashUI : MonoBehaviour
 
     private async Awaitable PlayFlash()
     {
-        _isFlashing = true;
+        _isFlashing = true;        
 
-        Color c = _flashImage.color;
-
-        while (_flashTimer < _fadeDuration)
+        try
         {
-            c.a = Mathf.Lerp(_maxAlpha, 0f, _flashTimer / _fadeDuration);
+            Color c = _flashImage.color;
+
+            while (_flashTimer < _fadeDuration)
+            {
+                c.a = Mathf.Lerp(_maxAlpha, 0f, _flashTimer / _fadeDuration);
+
+                _flashImage.color = c;
+
+                _flashTimer += Time.deltaTime;
+
+                await Awaitable.NextFrameAsync(destroyCancellationToken);
+            }
+
+            c.a = 0f;
 
             _flashImage.color = c;
-
-            _flashTimer += Time.deltaTime;
-
-            await Awaitable.NextFrameAsync(destroyCancellationToken);
         }
-
-        c.a = 0f;
-
-        _flashImage.color = c;
-
-        _isFlashing = false;
+        catch (System.OperationCanceledException oce)
+        {
+            Debug.LogException(oce);
+        }
+        finally
+        {
+            // 예외가 나도(또는 정상 취소돼도) _isFlashing이 영원히 true로 고정되지 않도록 무조건 복구
+            _isFlashing = false; 
+        }        
     }
 }

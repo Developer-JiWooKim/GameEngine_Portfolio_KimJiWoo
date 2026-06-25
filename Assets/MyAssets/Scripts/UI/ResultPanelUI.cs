@@ -5,7 +5,6 @@ using UnityEngine.UI;
 public class ResultPanelUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _resultText;
-    [SerializeField] private TextMeshProUGUI _mazeSizeText;
     [SerializeField] private TextMeshProUGUI _resultTimeText;
     [SerializeField] private Button _replayButton;
     [SerializeField] private Button _gameEndButton;
@@ -16,10 +15,9 @@ public class ResultPanelUI : MonoBehaviour
         _gameEndButton.onClick.AddListener(() => GameManager.Instance.GameExit());
     }
 
-    public void Show(string message, string mazeSizeLabel, string formattedTime)
+    public void Show(string message, string formattedTime)
     {
         _resultText.text = message;
-        _mazeSizeText.text = mazeSizeLabel;
         _resultTimeText.text = $"End Time : {formattedTime}";
 
         gameObject.SetActive(true);

@@ -76,8 +76,8 @@ public class GameUIController : MonoBehaviour
         _player.OnHPChanged += (current, max) => _damageflashUI?.Flash();
         _player.OnDead      += () => GameManager.Instance.GameOver();
 
-        GameManager.Instance.OnClear        += () => ShowResult("CLEAR!!", cols, rows);
-        GameManager.Instance.OnGameOver     += () => ShowResult("GAME OVER..", cols, rows);
+        GameManager.Instance.OnClear        += () => ShowResult("CLEAR!!");
+        GameManager.Instance.OnGameOver     += () => ShowResult("GAME OVER..");
         GameManager.Instance.OnKeyCollected += _inGamePanel.UpdateKeyCount;
 
         _inGamePanel.Show();
@@ -91,10 +91,10 @@ public class GameUIController : MonoBehaviour
     /// <summary>
     /// 결과 화면 전환, 플레이어 입력 막기
     /// </summary>
-    private void ShowResult(string message, int cols, int rows)
+    private void ShowResult(string message)
     {
         _inGamePanel.Hide();
-        _resultPanel.Show(message, $"Maze Size: {cols} X {rows}", GameManager.Instance.GameTimer.GetFormattedTime());
+        _resultPanel.Show(message, GameManager.Instance.GameTimer.GetFormattedTime());
 
         if (_player.TryGetComponent<PlayerInputHandler>(out PlayerInputHandler playerInputHandler))
         {

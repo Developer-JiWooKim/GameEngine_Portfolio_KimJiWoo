@@ -81,17 +81,10 @@ public class MonsterMove : MonoBehaviour
     /// </summary>
     private bool TryGetRandomPatrolPoint(out Vector3 result)
     {
-        MazeGenerator mazeGenenrator = MazeLayerManager.Instance != null ? MazeLayerManager.Instance.GetActiveMaze() : null;
+        MazeGenerator mazeGenenrator = MazeLayerManager.Instance.GetActiveMaze();
 
         Vector3 myPos = transform.position;
-
-        if (mazeGenenrator == null)
-        {
-            result = myPos;
-            Debug.LogError("MonsterMove TryGetRandomPatrolPoint(): mazeGenenrator is null");
-            return false;
-        }
-        
+                
         Vector2Int currentCellPos = mazeGenenrator.WorldToCell(myPos);
 
         Cell currentCell = mazeGenenrator.GetCell(currentCellPos.x, currentCellPos.y);
