@@ -3,7 +3,10 @@ using Unity.AI.Navigation;
 using UnityEngine;
 
 public class MazeLayerManager : MonoBehaviour
-{    
+{
+    private static MazeLayerManager _instance = null;
+    public static MazeLayerManager Instance => _instance;
+
     public enum LayerType
     {
         Physical,
@@ -16,11 +19,7 @@ public class MazeLayerManager : MonoBehaviour
 
     [Header("Maze Generators")]
     [SerializeField] private MazeGenerator _physicalMaze;
-    [SerializeField] private MazeGenerator _arcaneMaze;
-
-    [Header("Seeds")] // 서로 다른 시드를 부여 -> 다른 미로 구조를 갖게 설계
-    [SerializeField] private int _physicalSeed = 1001;
-    [SerializeField] private int _arcaneSeed   = 2002;
+    [SerializeField] private MazeGenerator _arcaneMaze;    
 
     [Header("Layer Switch Check")]
     [SerializeField] private float _overlapCheckRadius = 0.5f; // 전환 시 플레이어 위치에서 벽과의 겹침을 검사할 반경
@@ -34,17 +33,16 @@ public class MazeLayerManager : MonoBehaviour
 
     [Header("Layer Transition FX")]
     [SerializeField] private ScreenRippleController _rippleController;
-    [SerializeField] private float _rippleInDuration   = 0.2f;
-    [SerializeField] private float _rippleHoldDuration = 0.1f; // 일렁임이 최고조일 때 실제로 미로를 바꿔치기하는 구간
-    [SerializeField] private float _rippleOutDuration  = 0.2f;
+    [SerializeField] private float _rippleInDuration   = 0.1f;
+    [SerializeField] private float _rippleHoldDuration = 0.05f; // 일렁임이 최고조일 때 실제로 미로를 바꿔치기하는 구간
+    [SerializeField] private float _rippleOutDuration  = 0.1f;
 
     private bool _isTransitioning = false;
 
     private int _physicalWallMask;
-    private int _arcaneWallMask;
-
-    private static MazeLayerManager _instance = null;
-    public static MazeLayerManager Instance => _instance;
+    private int _physicalSeed;
+    private int _arcaneWallMask;    
+    private int _arcaneSeed;
 
     private int _currentWallLayerMask;
     public int CurrentWallLayerMask => _currentWallLayerMask;
@@ -72,22 +70,21 @@ public class MazeLayerManager : MonoBehaviour
 
         _physicalWallMask = LayerMask.GetMask("Wall_Physical");
         _arcaneWallMask   = LayerMask.GetMask("Wall_Arcane");
+
+        RandomSeed();
     }
     private void OnDestroy()
     {
         if(_playerInputHandler != null)
         {
-            _playerInputHandler.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
+            _playerInputHandler.OnLayerSwitchRequested -= SwitchLayer;
         }
     }
 
-    // #TODO: 삭제 예정 or UI버튼에 미로 바꾸기? 버튼으로 미로 구조 바꿀 수 있는 기능 추가 예정
     public void RandomSeed()
     {
         _physicalSeed = Random.Range(0, 1100);
         _arcaneSeed   = Random.Range(1100, 2200);
-
-        Debug.Log($"_physicalSeed: {_physicalSeed} / _arcaneSeed:{_arcaneSeed}");
     }
 
     /// <summary>
@@ -95,9 +92,6 @@ public class MazeLayerManager : MonoBehaviour
     /// </summary>
     public void SetLayersAndMazeGenerate(int cols, int rows)
     {
-        // #TODO: 미로 바뀌는지 테스트용 코드
-        RandomSeed();
-
         _physicalMaze.SetSeed(_physicalSeed);
         _physicalMaze.SetSize(cols, rows);
         _physicalMaze.Generate();
@@ -128,21 +122,16 @@ public class MazeLayerManager : MonoBehaviour
     {
         if (_playerInputHandler != null)
         {
-            _playerInputHandler.OnLayerSwitchRequested -= HandleLayerSwitchRequested;
+            _playerInputHandler.OnLayerSwitchRequested -= SwitchLayer;
         }
 
         _playerInputHandler = playerInputHandler;
-        _playerInputHandler.OnLayerSwitchRequested += HandleLayerSwitchRequested;
+        _playerInputHandler.OnLayerSwitchRequested += SwitchLayer;
     }
 
-    private void HandleLayerSwitchRequested(Vector3 playerPosition)
+    private void SwitchLayer(Vector3 playerPosition)
     {
-        TrySwitchLayer(playerPosition);
-    }
-
-    private bool TrySwitchLayer(Vector3 playerPosition)
-    {
-        if (_isTransitioning) return false; // 전환 연출 중 또 전환 연출하는걸 방지
+        if (_isTransitioning) return; // 전환 연출 중 또 전환 연출하는걸 방지
 
         LayerType targetLayer = _currentLayer == LayerType.Physical ? LayerType.Arcane : LayerType.Physical;
 
@@ -155,12 +144,10 @@ public class MazeLayerManager : MonoBehaviour
             SoundManager.Instance?.PlayLayerSwitchBlocked();
 
             OnLayerSwitchBlocked?.Invoke();
-            return false;
+            return;
         }
 
         _ = PlayLayerTransition(targetLayer);
-        
-        return true;
     }
 
     /// <summary>
@@ -174,10 +161,10 @@ public class MazeLayerManager : MonoBehaviour
             return;
         }
 
+        _isTransitioning = true;
+
         try
         {
-            _isTransitioning = true;
-
             SoundManager.Instance?.PlayLayerSwitch();
 
             GameManager.Instance.PauseGame();
@@ -191,16 +178,20 @@ public class MazeLayerManager : MonoBehaviour
             SetActiveLayer(targetLayer); // 일렁임이 화면을 가리는 동안 레이어 교체
 
             await FadeRipple(1f, 0f, _rippleOutDuration);
-
+            
+        }
+        catch (System.OperationCanceledException oce)
+        {
+            Debug.LogException(oce);
+        }
+        finally
+        {
+            // 예외가 나도(또는 정상 취소돼도) 입력/시간이 영원히 멈춰있지 않도록 무조건 복구
             _playerInputHandler.enabled = true;
 
             GameManager.Instance.ResumeGame();
 
             _isTransitioning = false;
-        }
-        catch (System.Exception)
-        {
-
         }
     }
 
@@ -209,8 +200,6 @@ public class MazeLayerManager : MonoBehaviour
     /// </summary>
     private async Awaitable FadeRipple(float from, float to, float duration)
     {
-        if (_rippleController == null) return;
-
         try
         {
             float elapsed = 0f;
@@ -224,11 +213,11 @@ public class MazeLayerManager : MonoBehaviour
                 await Awaitable.NextFrameAsync(destroyCancellationToken);
             }
 
-            _rippleController.SetIntensity(0f);
+            _rippleController.SetIntensity(to);
         }
-        catch (System.Exception)
+        catch (System.OperationCanceledException oce)
         {
-
+            Debug.LogException(oce);
         }
     }
 
@@ -247,9 +236,9 @@ public class MazeLayerManager : MonoBehaviour
                 await Awaitable.NextFrameAsync(destroyCancellationToken);
             }
         }
-        catch (System.Exception)
+        catch (System.OperationCanceledException oce)
         {
-
+            Debug.LogException(oce);
         }
     }
 

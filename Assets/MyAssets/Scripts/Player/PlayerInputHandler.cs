@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 /// 기존에는 매 프레임 Keyboard.current를 직접 폴링했지만, 
 /// 이제는 Input Action이 트리거될 때만 콜백으로 값을 받는 이벤트 기반 방식으로 변경
 /// </summary>
+[RequireComponent(typeof(PlayerInput))]
 public class PlayerInputHandler : MonoBehaviour
 {
     private Vector2 _inputVector = Vector2.zero;

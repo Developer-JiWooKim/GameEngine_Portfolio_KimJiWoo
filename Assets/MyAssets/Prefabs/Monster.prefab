@@ -163,6 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterFieldOfView
   _rayCount: 90
+  _updateInterval: 0.03
   _meshHeight: 0.1
   _fovMaterial: {fileID: 2100000, guid: 64c1fad5801f3014b8776440b58e4a04, type: 2}
 --- !u!33 &5408446105550700199

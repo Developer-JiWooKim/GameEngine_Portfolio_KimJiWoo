@@ -8,9 +8,15 @@ public class MonsterFieldOfView : MonoBehaviour
     [Tooltip("Ray 개수가 많을수록 부드럽지만 연산 비용 증가")]
     [SerializeField] private int _rayCount = 90;
 
+    [Header("Update Rate")]
+    [Tooltip("이 시간(초)마다 한 번씩만 메시를 다시 계산 - 매 프레임 다시 그리면 몬스터 수가 늘수록 비용이 커짐")]
+    [SerializeField] private float _updateInterval = 0.05f;
+
     [Header("Rendering")]
     [SerializeField] private float    _meshHeight = 0.1f;
     [SerializeField] private Material _fovMaterial;
+
+    private float _updateTimer;
 
     private float _detectionRange = 0f;
     private float _fieldOfView    = 0f;
@@ -22,6 +28,7 @@ public class MonsterFieldOfView : MonoBehaviour
     private int[]     _triangles;
 
     private void Awake() => Initialize();
+
     /// <summary>
     /// 초기화 메소드
     /// </summary>
@@ -44,12 +51,18 @@ public class MonsterFieldOfView : MonoBehaviour
 
         GetComponent<MeshRenderer>().material = _fovMaterial;
 
-        MonsterSight sight = GetComponentInParent<MonsterSight>();
+        if (transform.parent.TryGetComponent<MonsterSight>(out MonsterSight sight))
+        {
+            _detectionRange = sight.DetectionRange;
+            _fieldOfView = sight.FieldOfView;            
+        }
+        else
+        {
+            Debug.LogError("MonsterFieldOfView Initialize(): The parent object doesn't have a MonsterSight component.");
+        }
 
-        if (sight == null) return;
-
-        _detectionRange = sight.DetectionRange;
-        _fieldOfView    = sight.FieldOfView;
+        // 여러 몬스터가 같은 프레임에 한꺼번에 재계산하지 않도록 시작 타이밍을 랜덤하게 어긋나게
+        _updateTimer = Random.Range(0f, _updateInterval);
     }
 
     /// <summary>
@@ -57,6 +70,11 @@ public class MonsterFieldOfView : MonoBehaviour
     /// </summary>
     public void DrawFieldOfView(Transform monsterTransform)
     {
+        _updateTimer -= Time.deltaTime;
+        if (_updateTimer > 0f) return;
+
+        _updateTimer = _updateInterval;
+
         float angleStep   = _fieldOfView / _rayCount;
         float startAngle  = -_fieldOfView * 0.5f;
         float originAngle = monsterTransform.eulerAngles.y;

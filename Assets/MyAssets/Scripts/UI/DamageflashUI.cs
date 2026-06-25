@@ -5,11 +5,14 @@ using UnityEngine.UI;
 /// <summary>
 /// 화면 전체를 덮는 빨간 Image를 피격 시 깜빡이듯 보여주는 컴포넌트
 /// </summary>
+[RequireComponent(typeof(Image))]
 public class DamageflashUI : MonoBehaviour
 {
-    [SerializeField] private Image _flashImage;
+    [Header("Settings")]
     [SerializeField] private float _maxAlpha = 0.35f;
     [SerializeField] private float _fadeDuration = 0.4f;
+
+    private Image _flashImage;
 
     private bool  _isFlashing;
     private float _flashTimer;
@@ -21,7 +24,7 @@ public class DamageflashUI : MonoBehaviour
 
     private void Initialize()
     {
-        if (_flashImage == null) return;
+        _flashImage = GetComponent<Image>();
 
         Color c = _flashImage.color;
         c.a = 0f;
@@ -35,8 +38,6 @@ public class DamageflashUI : MonoBehaviour
     /// </summary>
     public void Flash()
     {
-        if (_flashImage == null) return;
-
         _flashTimer = 0f;
 
         // 이미 Flash가 진행 중이면 타이머만 리셋, 중복 방지

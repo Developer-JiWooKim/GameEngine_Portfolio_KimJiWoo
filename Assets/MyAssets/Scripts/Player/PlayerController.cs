@@ -2,6 +2,9 @@ using UnityEngine;
 using FischlWorks_FogWar;
 using Unity.Cinemachine;
 
+[RequireComponent(typeof(PlayerInputHandler))]
+[RequireComponent(typeof(PlayerMove))]
+[RequireComponent(typeof(CinemachineImpulseSource))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 10f;
@@ -29,8 +32,7 @@ public class PlayerController : MonoBehaviour
     {
         _playerInputHandler = GetComponent<PlayerInputHandler>();
         _playerMove         = GetComponent<PlayerMove>();
-
-        _impulseSource = GetComponent<CinemachineImpulseSource>();
+        _impulseSource      = GetComponent<CinemachineImpulseSource>();
 
         _currentHp = _maxHp;
     }

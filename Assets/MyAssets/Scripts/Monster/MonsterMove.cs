@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 public class MonsterMove : MonoBehaviour
 {
+    [Header("Setting")]
     [SerializeField] private float _moveSpeed      = 7f;   
     [SerializeField] private float _rotateSpeed    = 240f;
     [SerializeField] private float _arriveDistance = 0.5f; // 목표 지점 도착 판정 거리
@@ -24,7 +25,7 @@ public class MonsterMove : MonoBehaviour
     }
 
     /// <summary>
-    /// Idle 상태일 때 미로 안의 랜덤 지점을 목표로 순찰하는 메소드
+    /// Idle 상태일 때 미로 안의 랜덤 지점(근처 셀의 Center)을 목표로 순찰하는 메소드
     /// </summary>
     public void Patrol()
     {
@@ -39,19 +40,15 @@ public class MonsterMove : MonoBehaviour
                 _hasPatrolTarget = true;
             }
         }
-
-        // RotateTowardVelocity();
     }
 
     /// <summary>
-    /// 타겟 위치로 추격 이동, 경로 탐색과 이동은 NavMeshAgent가 자체적으로 처리
+    /// 타겟 위치로 추격 이동 메소드, 경로 탐색과 이동은 NavMeshAgent가 자체적으로 처리
     /// </summary>
     public void MoveToTarget(Vector3 targetPos)
     {
         _agent.isStopped = false;
         _agent.SetDestination(targetPos);
-
-       // RotateTowardVelocity();
     }
 
     /// <summary>
@@ -91,6 +88,7 @@ public class MonsterMove : MonoBehaviour
         if (mazeGenenrator == null)
         {
             result = myPos;
+            Debug.LogError("MonsterMove TryGetRandomPatrolPoint(): mazeGenenrator is null");
             return false;
         }
         
@@ -137,27 +135,11 @@ public class MonsterMove : MonoBehaviour
     }
 
     /// <summary>
-    /// NavMeshAgent의 현재 이동 방향(velocity)을 바라보도록 부드럽게 회전
-    /// </summary>
-    private void RotateTowardVelocity()
-    {
-        if (_agent.velocity.sqrMagnitude < 0.01f) return;
-
-        Vector3 dir = _agent.velocity;
-        dir.y = 0;
-
-        RotateToward(dir);
-    }
-
-    /// <summary>
-    ///  dir 방향으로 부드러운 회전 적용
+    ///  dir 방향으로 고정 각속도(도/초)로 회전 - NavMeshAgent의 Angular Speed와 동일한 모델
     /// </summary>
     private void RotateToward(Vector3 dir)
     {
         Quaternion targetRotation = Quaternion.LookRotation(dir, Vector3.up);
-
-        // 부드러운 회전
-        // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotateSpeed);
 
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotateSpeed * Time.deltaTime);
     }

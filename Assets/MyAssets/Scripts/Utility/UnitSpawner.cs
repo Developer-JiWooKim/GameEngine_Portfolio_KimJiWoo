@@ -17,7 +17,7 @@ public class UnitSpawner : MonoBehaviour
     [SerializeField] private GameObject _keyPrefab;
     [SerializeField] private GameObject _goalPointPrefab;
 
-    private int _monsterCount = 5;
+    private int _monsterCount = 10;
     private int _keyCount     = 5;
 
     private float _spawnY            = 1f;   // 유닛 스폰 y 좌표
@@ -39,7 +39,7 @@ public class UnitSpawner : MonoBehaviour
     public List<GameObject> Monsters => _monsters;
 
     /// <summary>
-    /// 몬스터 수 설정 메소드(UI에서 호출)
+    /// 몬스터 수 설정 메소드
     /// </summary>
     public void SetMonsterCount(int count)
     {
@@ -79,6 +79,8 @@ public class UnitSpawner : MonoBehaviour
             || _mazeLayerManager.FogWarSystem == null || Player == null)
         {
             Debug.LogError("UnitSpawner SpawnAll():Null이 있음");
+            Debug.LogError(GameManager.Instance + " / " + _mazeLayerManager + " / " + _mazeLayerManager.FogWarSystem
+                + " / " + Player);
             return;
         }
 
@@ -136,8 +138,9 @@ public class UnitSpawner : MonoBehaviour
 
             _followPlayerCamera.Priority = _introCamera.Priority + 1;
         }
-        catch (System.Exception)
+        catch (System.OperationCanceledException oce)
         {
+            Debug.LogException(oce);
         }
     }
 

@@ -5,13 +5,8 @@ using UnityEngine;
 /// </summary>
 public class MonsterAttack : MonoBehaviour
 {
-    public bool PlayerInAttackRange { get; private set; }
+    public bool PlayerInAttackRange { get; private set; } = false;
     public PlayerController Player { get; private set; }
-
-    private void Start()
-    {
-        PlayerInAttackRange = false;
-    }
 
     private void OnTriggerEnter(Collider other)
     {

@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public static bool SkipTitleOnLoad { get; set; } = false;
     public static GameManager Instance { get; private set; }
 
     private GameTimer _gameTimer;
@@ -16,7 +17,7 @@ public class GameManager : MonoBehaviour
 
     public int CurrentCollectedKeyCount => _currentCollectedKeyCount;
     public int RequiredKeyCount => _requiredKeyCount;
-    public bool IsPaused { get; private set; }
+    public bool IsPaused { get; private set; }    
 
     public event System.Action<int, int> OnKeyCollected;     // 열쇠를 모을때마다 발생할 이벤트(효과음, UI업데이트)
     public event System.Action           OnAllKeysCollected; // 모든 열쇠를 모은 시점에 1회 발생할 이벤트(Goal Point 생성)
@@ -127,10 +128,11 @@ public class GameManager : MonoBehaviour
 
     public void Replay()
     {
+        SkipTitleOnLoad = true;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public void GameEnd()
+    public void GameExit()
     {
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

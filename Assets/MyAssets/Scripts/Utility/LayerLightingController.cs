@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +5,7 @@ using UnityEngine;
 /// </summary>
 public class LayerLightingController : MonoBehaviour
 {
+    [Header("Directional Light")]
     [SerializeField] private Light _directionalLight;
 
     [Header("Physical")]
