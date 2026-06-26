@@ -67,10 +67,10 @@
 
 | 분류 | 적용 내용 |
 |---|---|
-| **Cinemachine** | `CinemachineBrain` + `CinemachineCamera`(쿼터뷰 추적), 시작 인트로 샷과 우선순위 기반 블렌딩, `Cinemachine Impulse`로 몬스터에게 피격 시 카메라 흔들림 |
-| **조명 / 머티리얼** | Shader Graph로 Physical/Arcane 벽 머티리얼 직접 제작, Key/Goal Point 용 Light 직접 제작(Fresnel Effect, Point Light pulse), 레이어 전환에 맞춘 Directional Light·대기 Fog 색 전환, 풀스크린 Shader Graph 기반 화면 일렁임 전환 효과 |
-| **이동/경로 시스템** | Player: `CharacterController` / Monster: `NavMeshAgent` + `NavMeshSurface`(레이어별 분리 베이크)|
-| **UI** | Title UI / InGame UI / Result UI |
+| **Cinemachine** | `CinemachineBrain` + `CinemachineCamera`, 시작 인트로 카메라와 쿼터뷰 추적 카메라를 우선순위 기반 블렌딩으로 카메라 전환 연출, `Cinemachine Impulse`로 몬스터에게 피격 시 카메라 흔들림 |
+| **조명 / 머티리얼** | Physical/Arcane 벽 머티리얼(ShaderGraph → `SG_PhysicalGrime`, `SG_ArcaneNoise`), Key/Goal Point 용 발광 머티리얼(ShaderGraph → `SG_GlowOrb`), 실시간 Point Light pulse(`PulsingLight.cs`), 레이어 전환에 맞춘 Directional Light·대기 Fog 색 전환(`LayerLightingController.cs`), 화면 일렁임 전환 효과(ShaderGraph → `SG_LayerTransitionRipple`) |
+| **이동/경로 시스템** | Player: `CharacterController` 기반 이동 / Monster: `NavMeshAgent` + `NavMeshSurface`(레이어별 분리 베이크) 로 미로 Patrol, 플레이어 추적 |
+| **UI** | Canvas 하위 Title/InGame/Result UI Panel을 `GameUIController.cs`가 조율(패널 전환·이벤트 연결), `DamageflashUI.cs`로 피격 시 화면 빨간색 페이드 연출 |
 | **사운드** | `SoundManager` + `SoundLibrary`(ScriptableObject, AudioClip들을 보관) |
 | **물리 Trigger** | 열쇠 회수, 골 포인트 도달, 몬스터 공격 범위 판정 |
 | **VFX** | Particle System(사방으로 흩어지는 입자) |
