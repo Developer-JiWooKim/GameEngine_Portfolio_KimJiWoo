@@ -3745,7 +3745,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResultPanelUI
   _resultText: {fileID: 1487808880}
-  _mazeSizeText: {fileID: 1916610098}
   _resultTimeText: {fileID: 2040303650}
   _replayButton: {fileID: 1007369023}
   _gameEndButton: {fileID: 676585003}
