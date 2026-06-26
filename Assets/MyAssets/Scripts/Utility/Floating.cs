@@ -9,9 +9,6 @@ public class Floating : MonoBehaviour
     [SerializeField] private float _bobbingHeight = 0.3f; // 위아래 움직이는 폭
     [SerializeField] private float _bobbingSpeed  = 1.5f; // 부유 속도
 
-    [Header("Rotation")]
-    [SerializeField] private float _rotateSpeed = 40f; // 초당 회전 속도
-
     private Vector3 _startLocalPos;
     private float _bobbingTimer;
 
@@ -31,7 +28,5 @@ public class Floating : MonoBehaviour
         pos.y += Mathf.Sin(_bobbingTimer) * _bobbingHeight;
 
         transform.localPosition = pos;
-
-        transform.Rotate(Vector3.up, _rotateSpeed * Time.deltaTime, Space.World);
     }
 }

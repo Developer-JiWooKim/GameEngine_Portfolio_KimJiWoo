@@ -40,7 +40,6 @@ public class PlayerInputHandler : MonoBehaviour
         _inputVector = Vector2.zero; // 비활성화되는 순간 입력 초기화
     }
 
-
     /// <summary>
     /// PlayerInput이 액션 하나가 트리거될 때마다 호출해주는 콜백 메소드
     /// </summary>
