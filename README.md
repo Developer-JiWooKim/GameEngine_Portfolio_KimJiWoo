@@ -69,11 +69,11 @@
 |---|---|
 | **Cinemachine** | `CinemachineBrain` + `CinemachineCamera`(쿼터뷰 추적), 시작 인트로 샷과 우선순위 기반 블렌딩, `Cinemachine Impulse`로 몬스터에게 피격 시 카메라 흔들림 |
 | **조명 / 머티리얼** | Shader Graph로 Physical/Arcane 벽 머티리얼 직접 제작, Key/Goal Point 용 Light 직접 제작(Fresnel Effect, Point Light pulse), 레이어 전환에 맞춘 Directional Light·대기 Fog 색 전환, 풀스크린 Shader Graph 기반 화면 일렁임 전환 효과 |
-| **이동/경로 시스템** | Player: `CharacterController` / Monster: `NavMeshAgent`|
+| **이동/경로 시스템** | Player: `CharacterController` / Monster: `NavMeshAgent` + `NavMeshSurface`(레이어별 분리 베이크)|
 | **UI** | Title UI / InGame UI / Result UI |
 | **사운드** | `SoundManager` + `SoundLibrary`(ScriptableObject, AudioClip들을 보관) |
 | **물리 Trigger** | 열쇠 회수, 골 포인트 도달, 몬스터 공격 범위 판정 |
-| **VFX** | Particle System(사방으로 흩어지는 입자), 실시간 Point Light를 이용한 발광 펄스 효과 |
+| **VFX** | Particle System(사방으로 흩어지는 입자) |
 | **리소스 관리** | MyAssets → Materials / Prefabs / Scripts / ShaderGraphs 등의 폴더 분리 후 관리, External 에셋(AOS Fog War)은 따로 건드리지 않음(임포트 경로 그대로 보존)|
 
 ### 추가로 사용한 시스템
@@ -82,26 +82,28 @@
 - **FSM** — 몬스터 AI(Idle / Chase / Attack) 상태 관리
 - **External Asset: AOS Fog War** — 플레이어 시야 기반 안개 시스템
 
+---
+
 ## 리소스 구성
 
 ```
 Assets/
 	AOSFogWar/           # 외부 에셋
 	MyAssets/			 # 직접 작업한 작업물
-  		Materials/            
-  		Prefabs/		
-		Scenes/	   
+  		Materials/            	 # Materials
+  		Prefabs/				 # Prefabs
+		Scenes/	   				 # GameAssignment Scene
 		Screenshots/ 			 # 인 게임 Screen Shots
 		ScriptableObjectAssets/  # SoundLibrary Asset
   		Scripts/
 			Monster/             # 몬스터 관련 .cs
-			Obsolete/            # AStarPathfinder, FollowCamera ([Obsolete] 처리, 이전 구현 보존)
+			Obsolete/            # AStarPathfinder, FollowCamera ([Obsolete] 처리한 .cs)
 			Player/              # 플레이어 관련 .cs
 			ScriptableObject/	 # 스크립터블 오브젝트 .cs(SoundLibrary)
 			UI/					 # UI 관련 .cs
     		Utility/             # 이 외의 모든 .cs
 				Manager/		 # Utility안에서도 매니저는 따로 폴더로 구분    		
-  		ShaderGraphs/            # 벽/발광 오브젝트/화면 일렁임 셰이더 그래프
+  		ShaderGraphs/            # Shader Graphs
 		SoundClips/				 # AudioClips
 ```
 
